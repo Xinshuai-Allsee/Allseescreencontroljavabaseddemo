@@ -1,0 +1,65 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Shutdown Screen -->
+        <EditText android:id="@+id/etOnTime" android:hint="On Time (seconds)" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnShutdown" android:text="Shutdown" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Reboot Screen -->
+        <Button android:id="@+id/btnReboot" android:text="Reboot" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Set Brightness -->
+        <EditText android:id="@+id/etBrightness" android:hint="Brightness (0–100)" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnSetBrightness" android:text="Set Brightness" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnGetBrightness" android:text="Get Brightness" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Set Port -->
+        <EditText android:id="@+id/etPort" android:hint="Port (HDMI/VGA/Digital)" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnSetPort" android:text="Set Port" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Kill Application -->
+        <EditText android:id="@+id/etPackageName" android:hint="Package Name" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnKillApp" android:text="Kill App" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Set Time -->
+        <EditText android:id="@+id/etTime" android:hint="System Time (ms)" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnSetTime" android:text="Set Time" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Navigation Bar -->
+        <EditText android:id="@+id/etNavState" android:hint="Navigation State (0/1)" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btnNavBarSwitch" android:text="Set Navigation Bar" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <!-- Screenshot -->
+        <EditText android:id="@+id/etScreenshotPath" android:hint="Screenshot Path" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btnScreenshot"
+            android:text="Take Screenshot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Set Volume -->
+        <EditText
+            android:id="@+id/etVolume"
+            android:hint="Volume (0–100)"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btnSetVolume"
+            android:text="Set Volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btnGetVolume"
+            android:text="Get Volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+</ScrollView>
