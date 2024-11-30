@@ -24,12 +24,12 @@
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                 | **Notes**                       |
-|---------------------|---------------------------------------------------------------------------------|---------------------------------|
+| **Parameter Name** | **Description**                                                                                                                    | **Notes**                       |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
 | **onTime**          | Time in seconds (S) before the device turns on again. Effective for real shutdown only. The value must be no less than 60 seconds. | Example: `120` for 2 minutes   |
-| **sleepType**       | Type of shutdown mode.                                                         | Default: `2`                   |
-|                     | `1`: Deep sleep mode                                                          |                                 |
-|                     | `2`: Fake shutdown mode                                                       |                                 |
+| **sleepType**       | Type of shutdown mode.                                                                                                             | Default: `2`                   |
+|                     | `1`: shutdown mode                                                                                                                 |                                 |
+|                     | `2`: sleep mode                                                                                                                    |                                 |
 
 ### **Example Usage**
 
@@ -146,7 +146,7 @@ protected void onDestroy() {
 }
 ```
 
-## Set System Time
+## Set System Input and Output Source
 
 - **Broadcast message**:  
   `com.assist.set.port`
