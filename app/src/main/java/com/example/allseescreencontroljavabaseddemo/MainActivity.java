@@ -113,9 +113,9 @@ public class MainActivity extends AppCompatActivity {
 
         addButtonWithCode(layout, "Get Screen Screenshot and the image will be saved as /mnt/sdcard/Download/screenshot.png", "com.assist.screencap.action",
                 "Intent intent = new Intent(\"com.assist.screencap.action\");\n" +
-                        "intent.putExtra(\"screen_hdmi_path\", \"/mnt/sdcard/Download\");\n" +
+                        "intent.putExtra(\"screen_hdmi_path\", \"/mnt/sdcard/Download/screenshot.png\");\n" +
                         "context.sendBroadcast(intent);",
-                intent -> intent.putExtra("screen_hdmi_path", "/mnt/sdcard/Download"), codeDisplay);
+                intent -> intent.putExtra("screen_hdmi_path", "/mnt/sdcard/Download/screenshot.png"), codeDisplay);
 
         addButtonWithCode(layout, "Set Volume to 0", "com.assist.set.volume",
                 "Intent intent = new Intent(\"com.assist.set.volume\");\n" +
