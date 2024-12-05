@@ -13,7 +13,7 @@
 11. [Set Volume](#set-volume)
 12. [Get Volume](#get-volume)
 13. [Get Screen Power Status](#get-screen-power-status)
-14. [Install Other Applications](#install-other-application)
+14. [Install Other Applications](#install-other-applications)
 ---
 
 ## Shutdown Screen
