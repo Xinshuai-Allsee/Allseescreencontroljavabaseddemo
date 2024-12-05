@@ -209,9 +209,9 @@ context.sendBroadcast(intent);
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                       | **Notes**                                                                                       |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **msec**             | System time to be set                 | The system time in milliseconds (e.g., 111111 represents the desired time in milliseconds)      |
+| **Parameter Name** | **Description**                       | **Notes**                                                                                          |
+|---------------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+| **msec**             | System time to be set                 | The system time in milliseconds (e.g., 1733398713118L represents the desired time in milliseconds) |
 
 ### **Example Usage**
 
@@ -219,7 +219,7 @@ context.sendBroadcast(intent);
 
 ```java
 Intent intent = new Intent("com.assist.settime.action");  
-intent.putExtra("msec", 111111);  // Sets the system time to 111111 milliseconds  
+intent.putExtra("msec", 1733398713118L);  // Sets the system time to 111111 milliseconds  
 context.sendBroadcast(intent);  
 ```
 

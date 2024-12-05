@@ -95,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
 
         addButtonWithCode(layout, "Set System Time", "com.assist.settime.action",
                 "Intent intent = new Intent(\"com.assist.settime.action\");\n" +
-                        "intent.putExtra(\"msec\", 111111);\n" +
+                        "intent.putExtra(\"msec\", 1733398713118L);\n" +
                         "context.sendBroadcast(intent);",
-                intent -> intent.putExtra("msec", 111111), codeDisplay);
+                intent -> intent.putExtra("msec", 1733398713118L), codeDisplay);
 
         addButtonWithCode(layout, "Hide Navigation Bar", "com.assist.switch.navigation.action",
                 "Intent intent = new Intent(\"com.assist.switch.navigation.action\");\n" +
