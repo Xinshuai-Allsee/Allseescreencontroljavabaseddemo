@@ -13,6 +13,7 @@
 11. [Set Volume](#set-volume)
 12. [Get Volume](#get-volume)
 13. [Get Screen Power Status](#get-screen-power-status)
+14. [Install Other Applications](#install-other-application)
 ---
 
 ## Shutdown Screen
@@ -374,4 +375,26 @@ protected void onDestroy() {
 }
 ```
 
+## Install Other Applications
+
+- **Broadcast message**:  
+  `com.assist.install.app.action`
+
+---
+
+### **Parameters**
+
+| **Parameter Name** | **Description**                               | **Notes**                                |
+|---------------------|-----------------------------------------------|------------------------------------------|
+| **appFilePath**           | File location for the third party application | Example: `/mnt/sdcard/Download/xxxx.apk` |
+
+### **Example Usage**
+
+#### **Install xxx.apk**
+
+```java
+Intent intent = new Intent("com.assist.install.app.action");
+intent.putExtra("appFilePath", "/mnt/sdcard/Download/xxxx.apk"); 
+context.sendBroadcast(intent);
+```
 

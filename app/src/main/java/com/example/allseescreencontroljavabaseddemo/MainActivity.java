@@ -93,6 +93,12 @@ public class MainActivity extends AppCompatActivity {
                         "context.sendBroadcast(intent);",
                 intent -> intent.putExtra("packageName", "com.example.allseescreencontroljavabaseddemo"), codeDisplay);
 
+        addButtonWithCode(layout, "Install other Applications", "com.assist.install.app.action",
+                "Intent intent = new Intent(\"com.assist.install.app.action\");\n" +
+                        "intent.putExtra(\"appFilePath\", \"/mnt/sdcard/Download/hahahaha.apk\");\n" +
+                        "context.sendBroadcast(intent);",
+                intent -> intent.putExtra("appFilePath", "/mnt/sdcard/Download/hahahaha.apk"), codeDisplay);
+
         addButtonWithCode(layout, "Set System Time", "com.assist.settime.action",
                 "Intent intent = new Intent(\"com.assist.settime.action\");\n" +
                         "intent.putExtra(\"msec\", 1733398713118L);\n" +
