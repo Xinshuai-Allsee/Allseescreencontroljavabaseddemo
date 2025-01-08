@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                         "context.sendBroadcast(intent);",
                 intent -> intent.putExtra("port", "HDMI"), codeDisplay);
 
-        addButtonWithCode(layout, "Kill Application", "com.assist.kill.app.action",
+        addButtonWithCode(layout, "Kill this demo Application", "com.assist.kill.app.action",
                 "Intent intent = new Intent(\"com.assist.kill.app.action\");\n" +
                         "intent.putExtra(\"packageName\", \"com.example.allseescreencontroljavabaseddemo\");\n" +
                         "context.sendBroadcast(intent);",
