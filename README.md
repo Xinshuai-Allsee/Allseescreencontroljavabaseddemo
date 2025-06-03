@@ -31,6 +31,7 @@
 | **sleepType**       | Type of shutdown mode.                                                                                                             | Default: `2`                   |
 |                     | `1`: shutdown mode                                                                                                                 |                                 |
 |                     | `2`: sleep mode                                                                                                                    |                                 |
+|                     | `3`: Wake up the screen            
 
 ### **Example Usage**
 

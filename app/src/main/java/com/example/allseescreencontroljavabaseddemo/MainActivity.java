@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -33,9 +34,11 @@ public class MainActivity extends AppCompatActivity {
         codeDisplay.setHint("Code will be displayed here...");
         layout.addView(codeDisplay);
 
-        registerReceiver(brightnessReceiver, new IntentFilter("com.assist.notify.light"));
-        registerReceiver(volumeReceiver, new IntentFilter("com.assist.notify.volume"));
-        registerReceiver(powerStatusReceiver, new IntentFilter("com.assist.notify.power.status"));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(brightnessReceiver, new IntentFilter("com.assist.notify.light"), Context.RECEIVER_NOT_EXPORTED);
+            registerReceiver(volumeReceiver, new IntentFilter("com.assist.notify.volume"), Context.RECEIVER_NOT_EXPORTED);
+            registerReceiver(powerStatusReceiver, new IntentFilter("com.assist.notify.power.status"), Context.RECEIVER_NOT_EXPORTED);
+        }
         // Add UI components for each functionality
         addButtonWithCode(layout, "Shutdown Screen", "com.assist.sleep.timeonoff",
                 "Intent intent = new Intent(\"com.assist.sleep.timeonoff\");\n" +
