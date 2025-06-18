@@ -14,6 +14,9 @@
 12. [Get Volume](#get-volume)
 13. [Get Screen Power Status](#get-screen-power-status)
 14. [Install Other Applications](#install-other-applications)
+15. [Rotate Screen](#rotate-screen)
+16. [Toggle IR Remote](#toggle-ir-remote)
+17. [Enable or Disable Touch Screen](#enable-or-disable-touch-screen)
 ---
 
 ## Shutdown Screen
@@ -51,7 +54,15 @@ intent.putExtra("sleepType", 2);
 context.sendBroadcast(intent);   
 ```
 
-#### **Shutdown then turn on again**
+#### **Wake Up**
+
+```java
+Intent intent = new Intent("com.assist.sleep.timeonoff");
+intent.putExtra("sleepType", 3);  
+context.sendBroadcast(intent);   
+```
+
+#### **Shutdown then It will automatically power back on according to the set time.**
 
 ```java
 Intent intent = new Intent("com.assist.sleep.timeonoff");
@@ -388,14 +399,83 @@ protected void onDestroy() {
 | **Parameter Name** | **Description**                               | **Notes**                                |
 |---------------------|-----------------------------------------------|------------------------------------------|
 | **appFilePath**           | File location for the third party application | Example: `/mnt/sdcard/Download/xxxx.apk` |
+| **packageName**           | packageName | Example: `com.xxx.xxx`                   |
 
 ### **Example Usage**
 
-#### **Install xxx.apk**
-
+#### **Install com.xxx.xxx**
 ```java
 Intent intent = new Intent("com.assist.install.app.action");
-intent.putExtra("appFilePath", "/mnt/sdcard/Download/xxxx.apk"); 
+intent.putExtra("packageName","com.xxx.xxx");
+intent.putExtra("appFilePath","/mnt/sdcard/Download/xxxx.apk");
 context.sendBroadcast(intent);
 ```
 
+## Rotate Screen
+
+- **Broadcast message**:  
+  `com.assist.set.system.orientation`
+
+---
+
+### **Parameters**
+
+| **Parameter Name** | **Description**                                                                                  | **Notes**                                |
+|---------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|
+| **orientation**           | System Orientation 0: Landscape 0° ; 90: Portrait 90° ; 180: Landscape 180° ; 270: Portrait 270° |  |
+
+### **Example Usage**
+
+#### **Rotate to 90**
+
+```java
+Intent intent = new Intent("com.assist.set.system.orientation");
+intent.putExtra("orientation", 90);
+context.sendBroadcast(intent);
+```
+
+## Toggle IR Remote
+
+- **Broadcast message**:  
+  `com.assist.set.remote`
+
+---
+
+### **Parameters**
+
+| **Parameter Name** | **Description**                                                                                  | **Notes**                                |
+|---------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|
+| **state**           | 0: IR remote enabled. 1: IR remote disabled, but the remote power button can turn on the system after shutdown. 2: IR remote disabled, and the remote power button cannot turn on the system after shutdown. |  |
+
+### **Example Usage**
+
+#### **Enable IR remote**
+
+```java
+Intent intent = new Intent("com.assist.set.remote");
+intent.putExtra("state", 0);
+context.sendBroadcast(intent);
+```
+
+## Enable or Disable Touch Screen
+
+- **Broadcast message**:  
+  `com.assist.set.touch`
+
+---
+
+### **Parameters**
+
+| **Parameter Name** | **Description**                                                                                  | **Notes**                                |
+|---------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|
+| **state**           | Touch Function: 0: Touch enabled, 1: Touch disabled |  |
+
+### **Example Usage**
+
+#### **Disable Touch Screen**
+
+```java
+Intent intent = new Intent("com.assist.set.touch");
+intent.putExtra("state", 1);
+context.sendBroadcast(intent);
+```
