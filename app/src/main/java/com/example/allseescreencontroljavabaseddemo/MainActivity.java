@@ -150,6 +150,40 @@ public class MainActivity extends AppCompatActivity {
                 null, codeDisplay);
 
 
+        // Enable IR remote (state = 0)
+        addButtonWithCode(
+                layout,
+                "Enable IR Remote",
+                "com.assist.set.remote",
+                "Intent intent = new Intent(\"com.assist.set.remote\");\n" +
+                        "intent.putExtra(\"state\", 0);\n" +
+                        "context.sendBroadcast(intent);",
+                intent -> intent.putExtra("state", 0),
+                codeDisplay);
+
+        // Disable IR remote, but let the power button wake the box (state = 1)
+        addButtonWithCode(
+                layout,
+                "Disable IR (power still works)",
+                "com.assist.set.remote",
+                "Intent intent = new Intent(\"com.assist.set.remote\");\n" +
+                        "intent.putExtra(\"state\", 1);\n" +
+                        "context.sendBroadcast(intent);",
+                intent -> intent.putExtra("state", 1),
+                codeDisplay);
+
+        // Fully disable IR remote, including the power button (state = 2)
+        addButtonWithCode(
+                layout,
+                "Disable IR (power blocked)",
+                "com.assist.set.remote",
+                "Intent intent = new Intent(\"com.assist.set.remote\");\n" +
+                        "intent.putExtra(\"state\", 2);\n" +
+                        "context.sendBroadcast(intent);",
+                intent -> intent.putExtra("state", 2),
+                codeDisplay);
+
+
         setContentView(scrollView);
     }
 

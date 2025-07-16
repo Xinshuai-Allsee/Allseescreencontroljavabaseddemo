@@ -28,12 +28,12 @@
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                                                                    | **Notes**                       |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
-| **onTime**          | Time in seconds (S) before the device turns on again. Effective for real shutdown only. The value must be no less than 60 seconds. | Example: `120` for 2 minutes   |
-| **sleepType**       | Type of shutdown mode.                                                                                                             | Default: `2`                   |
-|                     | `1`: shutdown mode                                                                                                                 |                                 |
-|                     | `2`: sleep mode                                                                                                                    |                                 |
+| **Parameter Name** | **Description**                                                                                                                    | **Notes**                                   |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| **onTime**          | Time in seconds (S) before the device turns on again. Effective for real shutdown only. The value must be no less than 60 seconds. | Example: `120` for 2 minutes. Default is `60` |
+| **sleepType**       | Type of shutdown mode.                                                                                                             | Default: `2`                                |
+|                     | `1`: shutdown mode                                                                                                                 |                                             |
+|                     | `2`: sleep mode                                                                                                                    |                                             |
 |                     | `3`: Wake up the screen            
 
 ### **Example Usage**
