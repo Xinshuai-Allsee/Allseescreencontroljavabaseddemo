@@ -1,52 +1,72 @@
-# Allsee screen control Java Based
+# Allsee Screen Control (Java API)
 
 ## Table of Contents
-1. [Shutdown Screen](#shutdown-screen)
-2. [Reboot Screen](#reboot-screen)
-3. [Set Screen Brightness](#set-screen-brightness)
-4. [Get Screen Brightness](#get-screen-brightness)
-5. [Set System Input and Output Source](#set-system-input-output-source)
-7. [Kill Application](#kill-application)
-8. [Set System Time](#set-system-time)
-9. [Navigation Bar UI Switch](#navigation-bar-UI-switch)
-10. [Get Screen Screenshot](#get-screen-screenshot)
-11. [Set Volume](#set-volume)
-12. [Get Volume](#get-volume)
-13. [Get Screen Power Status](#get-screen-power-status)
-14. [Install Other Applications](#install-other-applications)
-15. [Rotate Screen](#rotate-screen)
-16. [Toggle IR Remote](#toggle-ir-remote)
-17. [Enable or Disable Touch Screen](#enable-or-disable-touch-screen)
----
 
-## Shutdown Screen
+- [Toggle USB Power](toggle-usb-power)
+- [Control Power State (Shutdown/Sleep/Wake)](control-power-state-shutdownsleepwake)
+- [Reboot Screen](reboot-screen)
+- [Set Screen Brightness](set-screen-brightness)
+- [Set Input/Output Source](set-inputoutput-source)
+- [Kill Application](kill-application)
+- [Set System Time](set-system-time)
+- [Set Navigation Bar Visibility](set-navigation-bar-visibility)
+- [Get Screen Screenshot](get-screen-screenshot)
+- [Set Volume](set-volume)
+- [Install Application](install-application)
+- [Set Screen Orientation](set-screen-orientation)
+- [Set IR Remote State](set-ir-remote-state)
+- [Set IR Home Key State](set-ir-home-key-state)
+- [Set Touch Screen State](set-touch-screen-state)
 
-- **Broadcast message**:  
-  `com.assist.sleep.timeonoff`
+-----
 
----
+## Toggle USB Power
+
+- **Broadcast message**: `com.assist.set.usbpower`
+
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                                                                    | **Notes**                                   |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
-| **onTime**          | Time in seconds (S) before the device turns on again. Effective for real shutdown only. The value must be no less than 60 seconds. | Example: `120` for 2 minutes. Default is `60` |
-| **sleepType**       | Type of shutdown mode.                                                                                                             | Default: `2`                                |
-|                     | `1`: shutdown mode                                                                                                                 |                                             |
-|                     | `2`: sleep mode                                                                                                                    |                                             |
-|                     | `3`: Wake up the screen            
+| **Parameter Name** | **Description**             | **Notes** |
+|--------------------|-----------------------------|-----------|
+| `usbPower`         | 0: Off, 1: On               |           |
+| `usbNumber`        | 0: First USB, 1: Second USB |           |
+### **Example Usage**
+
+#### **Turn USB Power On**
+
+```java
+Intent intent = new Intent("com.assist.set.usbpower");
+intent.putExtra("usbNumber", 0);
+intent.putExtra("usbPower", 1);
+context.sendBroadcast(intent);
+```
+
+#### **Turn USB Power Off**
+
+```java
+Intent intent = new Intent("com.assist.set.usbpower");
+intent.putExtra("usbPower", 0);
+context.sendBroadcast(intent);
+```
+
+## Control Power State (Shutdown/Sleep/Wake)
+
+- **Broadcast message**: `com.assist.sleep.timeonoff`
+
+-----
+
+### **Parameters**
+
+| **Parameter Name** | **Description** | **Notes** |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| `onTime`           | Time in seconds (s) before the device turns on again. Effective for real shutdown only. The value must be no less than 60 seconds. | Example: `120` for 2 minutes. Default is `60`.                            |
+| `sleepType`        | `1`: Shutdown mode\<br\>`2`: Sleep mode\<br\>`3`: Wake up the screen                                                                    | Default: `2`.                                                             |
 
 ### **Example Usage**
 
-#### **Shutdown**
-
-```java
-Intent intent = new Intent("com.assist.sleep.timeonoff");
-intent.putExtra("sleepType", 1);   
-context.sendBroadcast(intent);   
-```
-
-#### **Sleep**
+#### **Enter Sleep Mode**
 
 ```java
 Intent intent = new Intent("com.assist.sleep.timeonoff");
@@ -54,7 +74,7 @@ intent.putExtra("sleepType", 2);
 context.sendBroadcast(intent);   
 ```
 
-#### **Wake Up**
+#### **Wake Up Screen**
 
 ```java
 Intent intent = new Intent("com.assist.sleep.timeonoff");
@@ -62,32 +82,59 @@ intent.putExtra("sleepType", 3);
 context.sendBroadcast(intent);   
 ```
 
-#### **Shutdown then It will automatically power back on according to the set time.**
+#### **Shutdown with Automatic Power-On**
 
 ```java
 Intent intent = new Intent("com.assist.sleep.timeonoff");
 intent.putExtra("sleepType", 1);   
-intent.putExtra("onTime", 120);  // The screen will be shutdown then turns on after 120 seconds (2 minutes) automatically. 
+// The screen will shut down then turn on automatically after 120 seconds (2 minutes). 
+intent.putExtra("onTime", 120);  
 context.sendBroadcast(intent);   
+```
+
+#### **Get Current Power Status**
+
+```java
+// Request the current power status
+Intent intent = new Intent("com.assist.get.power.status"); 
+context.sendBroadcast(intent);
+
+// Register a receiver to get the status from the system
+registerReceiver(powerStatusReceiver, new IntentFilter("com.assist.notify.power.status"));
+
+private final BroadcastReceiver powerStatusReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    // 0: Screen on (visible), 1: Screen off (black)
+    int status = intent.getIntExtra("status", -1); 
+    if (status != -1) {
+      Log.d("PowerStatus", "Received status: " + status);
+    } else {
+      Log.e("PowerStatus", "Error: Failed to receive status.");
+    }
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(powerStatusReceiver);
+}
 ```
 
 ## Reboot Screen
 
-- **Broadcast message**:  
-  `com.assist.reboot.action`
+- **Broadcast message**: `com.assist.reboot.action`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                   | **Notes** |
-|---------------------|-----------------------------------|-----------|
-| **None**            | This interface takes no parameters. |           |
-
+This broadcast takes no parameters.
 
 ### **Example Usage**
 
-#### **Reboot**
+#### **Reboot the Device**
 
 ```java
 Intent intent = new Intent("com.assist.reboot.action");  
@@ -96,16 +143,15 @@ context.sendBroadcast(intent);
 
 ## Set Screen Brightness
 
-- **Broadcast message**:  
-  `com.assist.set.light`
+- **Broadcast message**: `com.assist.set.light`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**         | **Notes**           |
-|---------------------|-------------------------|---------------------|
-| **light**           | Brightness value (0–100) | Example: `50` for medium brightness |
+| **Parameter Name** | **Description** | **Notes** |
+|--------------------|--------------------------|---------------------------------------------|
+| `light`            | Brightness value (0–100) | Example: `50` for 50% brightness.           |
 
 ### **Example Usage**
 
@@ -117,41 +163,28 @@ intent.putExtra("light", 50);  // Sets brightness to 50%
 context.sendBroadcast(intent);  
 ```
 
-## Get Screen Brightness
-
-- **Broadcast message**  
-  `com.assist.get.light`
-
----
-
-### **Parameters**
-
-| **Parameter Name** | **Description**                       | **Notes**                                                                                       |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **No parameters**   | No parameters are needed for this action | The intent simply requests the current brightness level without needing additional parameters.  |
-
-### **Example Usage**
-
-#### **Get the current brightness**
+#### **Get Current Brightness**
 
 ```java
+// Request the current system brightness
 Intent intent = new Intent("com.assist.get.light");  
-context.sendBroadcast(intent);  // Requests the current system brightness  
+context.sendBroadcast(intent);  
 
-// Register receiver to receive the value from system
+// Register a receiver to get the value from the system
 registerReceiver(brightnessReceiver, new IntentFilter("com.assist.notify.light"));
+
 private final BroadcastReceiver brightnessReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
-        // Get the brightness value from the intent extras
         int brightness = intent.getIntExtra("light", -1);
         if (brightness != -1) {
-            codeDisplay.append("\n\nReceived Brightness: " + brightness);
+            Log.d("Brightness", "Received Brightness: " + brightness);
         } else {
-            codeDisplay.append("\n\nError: Failed to receive brightness.");
+            Log.e("Brightness", "Error: Failed to receive brightness.");
         }
     }
 };
+
 @Override
 protected void onDestroy() {
     super.onDestroy();
@@ -159,188 +192,211 @@ protected void onDestroy() {
 }
 ```
 
-## Set System Input and Output Source
+## Set Input/Output Source
 
-- **Broadcast message**:  
-  `com.assist.set.port`
+- **Broadcast message**: `com.assist.set.port`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                     | **Notes**                           |
-|---------------------|-------------------------------------|-------------------------------------|
-| **port**            | Input/Output port                  | HDMI: hdmi input, VGA: vga input, Digital: Android system output |
+| **Parameter Name** | **Description** |
+|--------------------|----------------------------------------------------------------|
+| `port`             | `"HDMI"`: HDMI input\<br\>`"VGA"`: VGA input\<br\>`"Digital"`: Android system output |
 
 ### **Example Usage**
 
-#### **Set Input as HDMI**
+#### **Set Input to HDMI**
 
 ```java
 Intent intent = new Intent("com.assist.set.port");  
-intent.putExtra("port", "HDMI");  // Sets the input port to HDMI input  
+intent.putExtra("port", "HDMI");  
 context.sendBroadcast(intent);  
 ```
 
-#### **Set Output as Android system**
+#### **Set Output to Android System**
 
 ```java
 Intent intent = new Intent("com.assist.set.port");  
-intent.putExtra("port", "Digital");  // Sets the output port to Android system
+intent.putExtra("port", "Digital");
 context.sendBroadcast(intent);  
+```
+
+#### **Get Current Input/Output Source**
+
+```java
+// Request the current Input/Output source
+Intent intent = new Intent("com.assist.get.port");
+context.sendBroadcast(intent);
+
+// Register a receiver to get the value from the system
+registerReceiver(portReceiver, new IntentFilter("com.assist.notify.port"), Context.RECEIVER_NOT_EXPORTED);
+
+private final BroadcastReceiver portReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int port = intent.getIntExtra("port", -1);
+    if (port != -1) {
+      // Note: The integer value needs to be mapped to the corresponding source name.
+      Log.d("PortReceiver", "Received port value: " + port);
+    } else {
+      Log.e("PortReceiver", "Error: Failed to receive port value.");
+    }
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(portReceiver);
+}
 ```
 
 ## Kill Application
 
-- **Broadcast message**  
-  `com.assist.kill.app.action`
+- **Broadcast message**: `com.assist.kill.app.action`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                       | **Notes**                                                                                       |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **packageName**      | The package name of the third-party app | The name of the app's package to be terminated (e.g., "com.example.app")                          |
+| **Parameter Name** | **Description** |
+|--------------------|---------------------------------------|
+| `packageName`      | The package name of the app to kill.  |
 
 ### **Example Usage**
 
-#### **Kill a third-party app**
+#### **Kill a Third-Party App**
 
 ```java
 Intent intent = new Intent("com.assist.kill.app.action");  
-intent.putExtra("packageName", "xxx");  // Replace "xxx" with the app's package name  
+// Replace with the actual package name
+intent.putExtra("packageName", "com.example.app");  
 context.sendBroadcast(intent);  
 ```
 
 ## Set System Time
 
-- **Broadcast message**  
-  `com.assist.settime.action`
+- **Broadcast message**: `com.assist.settime.action`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                       | **Notes**                                                                                             |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------------|
-| **msec**             | System time to be set                 | The system time in milliseconds (e.g., 1733398713118L represents the desired time in milliseconds - December 5, 2024, at 11:38:33.118 AM (UTC)) |
+| **Parameter Name** | **Description** |
+|--------------------|-----------------------------------------------------|
+| `msec`             | The system time in milliseconds since the epoch (long). |
 
 ### **Example Usage**
 
-#### **Set the system time**
+#### **Set the System Time**
 
 ```java
 Intent intent = new Intent("com.assist.settime.action");  
-intent.putExtra("msec", 1733398713118L);  // Sets the system time to 1733398713118L milliseconds  (The given timestamp 1733398713118L milliseconds corresponds to December 5, 2024, at 11:38:33.118 AM (UTC). )
+// Example: December 5, 2024, at 11:38:33.118 AM (UTC)
+long timestamp = 1733398713118L;
+intent.putExtra("msec", timestamp);
 context.sendBroadcast(intent);  
 ```
 
-## Navigation Bar UI Switch
+## Set Navigation Bar Visibility
 
-- **Broadcast message**  
-  `com.assist.switch.navigation.action`
+- **Broadcast message**: `com.assist.switch.navigation.action`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                       | **Notes**                                                                                       |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **state**            | Navigation bar visibility            | 0: Show the navigation bar, 1: Hide the navigation bar                                          |
+| **Parameter Name** | **Description** |
+|--------------------|-----------------------------------------------|
+| `state`            | `0`: Show navigation bar\<br\>`1`: Hide navigation bar |
 
 ### **Example Usage**
 
-#### **Show the navigation bar**
+#### **Show Navigation Bar**
 
 ```java
 Intent intent = new Intent("com.assist.switch.navigation.action");  
-intent.putExtra("state", 0);  // Shows the navigation bar  
+intent.putExtra("state", 0);
+context.sendBroadcast(intent);  
+```
+
+#### **Hide Navigation Bar**
+
+```java
+Intent intent = new Intent("com.assist.switch.navigation.action");  
+intent.putExtra("state", 1);
 context.sendBroadcast(intent);  
 ```
 
 ## Get Screen Screenshot
 
-- **Broadcast message**  
-  `com.assist.screencap.action`
+- **Broadcast message**: `com.assist.screencap.action`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name**   | **Description**                       | **Notes**                                                                                       |
-|----------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **screen_hdmi_path**  | Screenshot file storage path         | The file path where the screenshot will be stored (e.g., "path/to/screenshot.png")              |
+| **Parameter Name** | **Description** |
+|----------------------|----------------------------------|
+| `screen_hdmi_path`   | Full file path to save the PNG screenshot. |
 
 ### **Example Usage**
 
-#### **Capture the screen and save to a file**
+#### **Capture Screen to a File**
 
 ```java
-Intent intent = new Intent("com.assist.screencap.action");  
-intent.putExtra("screen_hdmi_path", "xxx");  // Replace "xxx" with the desired file path for the screenshot  
+Intent intent = new Intent("com.assist.screencap.action");
+// Example path, ensure your app has storage permissions
+String filePath = "/storage/emulated/0/Pictures/screenshot.png";
+intent.putExtra("screen_hdmi_path", filePath);
 context.sendBroadcast(intent);  
 ```
 
 ## Set Volume
 
-- **Broadcast message**  
-  `com.assist.set.volume`
+- **Broadcast message**: `com.assist.set.volume`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                       | **Notes**                                                                                       |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **volume**          | Volume level                          | The volume level to be set (e.g., 50 for 50% volume). The range is typically 0–100.             |
+| **Parameter Name** | **Description** |
+|--------------------|---------------------------------------|
+| `volume`           | Volume level to set (0-100).          |
 
 ### **Example Usage**
 
-#### **Set the volume to 50**
+#### **Set Volume**
 
 ```java
 Intent intent = new Intent("com.assist.set.volume");  
-intent.putExtra("volume", 50);  // Sets the volume to 50%  
+intent.putExtra("volume", 50);  // Sets the volume to 50%
 context.sendBroadcast(intent);  
 ```
 
-## Get Volume
-
-- **Broadcast message**  
-  `com.assist.get.volume`
-
----
-
-### **Parameters**
-
-| **Parameter Name** | **Description**                       | **Notes**                                                                                       |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------|
-| **volume**          | Request to get the current volume     | Set to `true` to request the current system volume level.                                         |
-
-### **Example Usage**
-
-#### **Get the current volume**
+#### **Get Current Volume**
 
 ```java
+// Request the current volume level  
 Intent intent = new Intent("com.assist.get.volume");  
-intent.putExtra("volume", true);  // Requests the current volume level  
 context.sendBroadcast(intent);
 
-// Register receiver to receive the value from system
+// Register a receiver to get the value from the system
 registerReceiver(volumeReceiver, new IntentFilter("com.assist.notify.volume"));
+
 private final BroadcastReceiver volumeReceiver = new BroadcastReceiver() {
   @Override
   public void onReceive(Context context, Intent intent) {
-    // Get the volume value from the intent extras
     int volume = intent.getIntExtra("volume", -1);
-    if (brightness != -1) {
-      codeDisplay.append("\n\nReceived volume: " + volume);
+    if (volume != -1) {
+      Log.d("Volume", "Received volume: " + volume);
     } else {
-      codeDisplay.append("\n\nError: Failed to receive volume.");
+      Log.e("Volume", "Error: Failed to receive volume.");
     }
   }
 };
+
 @Override
 protected void onDestroy() {
   super.onDestroy();
@@ -348,85 +404,46 @@ protected void onDestroy() {
 }
 ```
 
+## Install Application
 
-## Get Screen Power Status
+- **Broadcast message**: `com.assist.install.app.action`
 
-- **Broadcast message**  
-  `com.assist.get.power.status`
-
----
+-----
 
 ### **Parameters**
 
-### **Example Usage**
-
-#### **Get the current volume**
-
-```java
-Intent intent = new Intent("com.assist.get.power.status"); 
-context.sendBroadcast(intent);
-
-// Register receiver to receive the value from system
-registerReceiver(powerStatusReceiver, new IntentFilter("com.assist.notify.power.status"));
-private final BroadcastReceiver powerStatusReceiver = new BroadcastReceiver() {
-  @Override
-  public void onReceive(Context context, Intent intent) {
-    // Get the power status value from the intent extras
-    int status = intent.getIntExtra("status", -1);
-    if (status != -1) {
-      codeDisplay.append("\n\nReceived status: " + status); //0:Screen can be seen, 1: Screen is black.
-    } else {
-      codeDisplay.append("\n\nError: Failed to receive status.");
-    }
-  }
-};
-@Override
-protected void onDestroy() {
-  super.onDestroy();
-  unregisterReceiver(powerStatusReceiver);
-}
-```
-
-## Install Other Applications
-
-- **Broadcast message**:  
-  `com.assist.install.app.action`
-
----
-
-### **Parameters**
-
-| **Parameter Name** | **Description**                               | **Notes**                                |
-|---------------------|-----------------------------------------------|------------------------------------------|
-| **appFilePath**           | File location for the third party application | Example: `/mnt/sdcard/Download/xxxx.apk` |
-| **packageName**           | packageName | Example: `com.xxx.xxx`                   |
+| **Parameter Name** | **Description** |
+|--------------------|---------------------------------------------|
+| `appFilePath`      | Full file path of the APK to install.       |
+| `packageName`      | The package name of the application.        |
 
 ### **Example Usage**
 
-#### **Install com.xxx.xxx**
+#### **Install an Application**
+
 ```java
 Intent intent = new Intent("com.assist.install.app.action");
-intent.putExtra("packageName","com.xxx.xxx");
-intent.putExtra("appFilePath","/mnt/sdcard/Download/xxxx.apk");
+// Replace with actual package name and file path
+intent.putExtra("packageName","com.example.app");
+intent.putExtra("appFilePath","/storage/emulated/0/Download/example.apk");
 context.sendBroadcast(intent);
 ```
 
-## Rotate Screen
+## Set Screen Orientation
 
-- **Broadcast message**:  
-  `com.assist.set.system.orientation`
+- **Broadcast message**: `com.assist.set.system.orientation`
 
----
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                                  | **Notes**                                |
-|---------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|
-| **orientation**           | System Orientation 0: Landscape 0° ; 90: Portrait 90° ; 180: Landscape 180° ; 270: Portrait 270° |  |
+| **Parameter Name** | **Description** |
+|--------------------|--------------------------------------------------------------------------------|
+| `orientation`      | `0`: Landscape (0°)\<br\>`90`: Portrait (90°)\<br\>`180`: Landscape (180°)\<br\>`270`: Portrait (270°) |
 
 ### **Example Usage**
 
-#### **Rotate to 90**
+#### **Rotate to Portrait (90°)**
 
 ```java
 Intent intent = new Intent("com.assist.set.system.orientation");
@@ -434,22 +451,50 @@ intent.putExtra("orientation", 90);
 context.sendBroadcast(intent);
 ```
 
-## Toggle IR Remote
+#### **Get Current Orientation**
 
-- **Broadcast message**:  
-  `com.assist.set.remote`
+```java
+// Request the current orientation
+Intent intent = new Intent("com.assist.get.system.orientation");
+context.sendBroadcast(intent);
 
----
+// Register a receiver to get the value from the system
+registerReceiver(orientationReceiver, new IntentFilter("com.assist.notify.orientation"), Context.RECEIVER_NOT_EXPORTED);
+
+private final BroadcastReceiver orientationReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int orientation = intent.getIntExtra("orientation", -1);
+    if (orientation != -1) {
+      Log.d("Orientation", "Received orientation: " + orientation);
+    } else {
+      Log.e("Orientation", "Error: Failed to receive orientation.");
+    }
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(orientationReceiver);
+}
+```
+
+## Set IR Remote State
+
+- **Broadcast message**: `com.assist.set.remote`
+
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                                  | **Notes**                                |
-|---------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|
-| **state**           | 0: IR remote enabled. 1: IR remote disabled, but the remote power button can turn on the system after shutdown. 2: IR remote disabled, and the remote power button cannot turn on the system after shutdown. |  |
+| **Parameter Name** | **Description** |
+|--------------------|------------------------------------------------------------------------------------------------------------------------|
+| `state`            | `0`: Enable IR remote.\<br\>`1`: Disable IR remote (power button can still wake device).\<br\>`2`: Disable IR remote completely. |
 
 ### **Example Usage**
 
-#### **Enable IR remote**
+#### **Enable IR Remote**
 
 ```java
 Intent intent = new Intent("com.assist.set.remote");
@@ -457,18 +502,97 @@ intent.putExtra("state", 0);
 context.sendBroadcast(intent);
 ```
 
-## Enable or Disable Touch Screen
+#### **Get Current IR Remote State**
 
-- **Broadcast message**:  
-  `com.assist.set.touch`
+```java
+// Request the current IR remote state
+Intent intent = new Intent("com.assist.get.remote");
+context.sendBroadcast(intent);
 
----
+// Register a receiver to get the value from the system
+registerReceiver(irReceiver, new IntentFilter("com.assist.notify.remote"), Context.RECEIVER_NOT_EXPORTED);
+
+private final BroadcastReceiver irReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int state = intent.getIntExtra("state", -1);
+    if (state != -1) {
+      Log.d("IRRemote", "Received IR remote state: " + state);
+    } else {
+      Log.e("IRRemote", "Error: Failed to receive IR remote state.");
+    }
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(irReceiver);
+}
+```
+
+## Set IR Home Key State
+
+- **Broadcast message**: `com.assist.sethome.action`
+
+-----
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                                  | **Notes**                                |
-|---------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|
-| **state**           | Touch Function: 0: Touch enabled, 1: Touch disabled |  |
+| **Parameter Name** | **Description** |
+|--------------------|-------------------------------------|
+| `state`            | `0`: Enabled\<br\>`1`: Disabled       |
+
+### **Example Usage**
+
+#### **Enable IR Home Key**
+
+```java
+Intent intent = new Intent("com.assist.sethome.action");
+intent.putExtra("state", 0);
+context.sendBroadcast(intent);
+```
+
+#### **Get Current IR Home Key State**
+
+```java
+// Request the current IR Home key state
+Intent intent = new Intent("com.assist.gethome.action");
+context.sendBroadcast(intent);
+
+// Register a receiver to get the value from the system
+registerReceiver(irHomeReceiver, new IntentFilter("com.assist.notify.homekey.disable"), Context.RECEIVER_NOT_EXPORTED);
+
+private final BroadcastReceiver irHomeReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int state = intent.getIntExtra("state", -1);
+    if (state != -1) {
+      Log.d("IRHome", "Received IR Home key state: " + state);
+    } else {
+      Log.e("IRHome", "Error: Failed to receive IR Home key state.");
+    }
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(irHomeReceiver);
+}
+```
+
+## Set Touch Screen State
+
+- **Broadcast message**: `com.assist.set.touch`
+
+-----
+
+### **Parameters**
+
+| **Parameter Name** | **Description** |
+|--------------------|----------------------------------------------|
+| `state`            | `0`: Touch enabled\<br\>`1`: Touch disabled    |
 
 ### **Example Usage**
 
@@ -478,4 +602,33 @@ context.sendBroadcast(intent);
 Intent intent = new Intent("com.assist.set.touch");
 intent.putExtra("state", 1);
 context.sendBroadcast(intent);
+```
+
+#### **Get Current Touch Screen State**
+
+```java
+// Request the current touch screen state
+Intent intent = new Intent("com.assist.get.touch");
+context.sendBroadcast(intent);
+
+// Register a receiver to get the value from the system
+registerReceiver(touchReceiver, new IntentFilter("com.assist.notify.touch"), Context.RECEIVER_NOT_EXPORTED);
+
+private final BroadcastReceiver touchReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int state = intent.getIntExtra("state", -1);
+    if (state != -1) {
+      Log.d("Touch", "Received touch state: " + state);
+    } else {
+      Log.e("Touch", "Error: Failed to receive touch state.");
+    }
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(touchReceiver);
+}
 ```
