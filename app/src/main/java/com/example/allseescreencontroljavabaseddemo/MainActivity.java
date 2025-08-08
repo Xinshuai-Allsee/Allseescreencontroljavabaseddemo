@@ -1,358 +1,392 @@
 package com.example.allseescreencontroljavabaseddemo;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.app.Activity;
+import android.graphics.Typeface;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
+import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Range;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
-    /**
-     * Centralized constants for all broadcast actions and intent extras.
-     * This prevents typos and makes maintenance easier.
-     */
-    private static final class Constants {
-        // Actions for Setting/Toggling
-        static final String ACTION_SET_USB_POWER = "com.assist.set.usbpower";
-        static final String ACTION_SET_POWER_STATE = "com.assist.sleep.timeonoff";
-        static final String ACTION_REBOOT = "com.assist.reboot.action";
-        static final String ACTION_SET_BRIGHTNESS = "com.assist.set.light";
-        static final String ACTION_SET_PORT = "com.assist.set.port";
-        static final String ACTION_KILL_APP = "com.assist.kill.app.action";
-        static final String ACTION_SET_TIME = "com.assist.settime.action";
-        static final String ACTION_SET_NAV_BAR = "com.assist.switch.navigation.action";
-        static final String ACTION_TAKE_SCREENSHOT = "com.assist.screencap.action";
-        static final String ACTION_SET_VOLUME = "com.assist.set.volume";
-        static final String ACTION_INSTALL_APP = "com.assist.install.app.action";
-        static final String ACTION_SET_ORIENTATION = "com.assist.set.system.orientation";
-        static final String ACTION_SET_IR_REMOTE = "com.assist.set.remote";
-        static final String ACTION_SET_IR_HOME_REMOTE = "com.assist.sethome.action";
-        static final String ACTION_SET_TOUCH = "com.assist.set.touch";
+    private static final String TAG = "AllseeCodecReport";
 
-        // Actions for Getting Status
-        static final String ACTION_GET_BRIGHTNESS = "com.assist.get.light";
-        static final String ACTION_GET_VOLUME = "com.assist.get.volume";
-        static final String ACTION_GET_POWER_STATUS = "com.assist.get.power.status";
-        static final String ACTION_GET_PORT = "com.assist.get.port";
-        static final String ACTION_GET_ORIENTATION = "com.assist.get.system.orientation";
-        static final String ACTION_GET_IR_REMOTE = "com.assist.get.remote";
-        static final String ACTION_GET_IR_HOME_REMOTE = "com.assist.gethome.action";
-        static final String ACTION_GET_TOUCH = "com.assist.get.touch";
-
-        // Actions for Receiving Status Notifications
-        static final String NOTIFY_BRIGHTNESS = "com.assist.notify.light";
-        static final String NOTIFY_VOLUME = "com.assist.notify.volume";
-        static final String NOTIFY_POWER_STATUS = "com.assist.notify.power.status";
-        static final String NOTIFY_PORT = "com.assist.notify.port";
-        static final String NOTIFY_ORIENTATION = "com.assist.notify.orientation";
-        static final String NOTIFY_IR_REMOTE = "com.assist.notify.remote";
-        static final String NOTIFY_TOUCH = "com.assist.notify.touch";
-        static final String NOTIFY_IR_HOME = "com.assist.notify.homekey.disable";
-
-        // Intent Extra Keys
-        static final String EXTRA_USB_POWER = "usbPower";
-        static final String EXTRA_SLEEP_TYPE = "sleepType";
-        static final String EXTRA_ON_TIME = "onTime";
-        static final String EXTRA_LIGHT = "light";
-        static final String EXTRA_PORT = "port";
-        static final String EXTRA_PACKAGE_NAME = "packageName";
-        static final String EXTRA_APP_FILE_PATH = "appFilePath";
-        static final String EXTRA_MSEC = "msec";
-        static final String EXTRA_STATE = "state";
-        static final String EXTRA_SCREENSHOT_PATH = "screen_hdmi_path";
-        static final String EXTRA_VOLUME = "volume";
-        static final String EXTRA_ORIENTATION = "orientation";
-    }
-
-    /**
-     * A simple data class to hold all information needed to create a UI button for an API command.
-     */
-    private static class ApiCommand {
-        final String buttonText;
-        final String action;
-        final String codeSample;
-        final BroadcastModifier modifier;
-
-        ApiCommand(String buttonText, String action, String codeSample, @Nullable BroadcastModifier modifier) {
-            this.buttonText = buttonText;
-            this.action = action;
-            this.codeSample = codeSample;
-            this.modifier = modifier;
-        }
-    }
-
-    // A functional interface to modify an Intent before it's broadcast.
-    interface BroadcastModifier {
-        void modify(Intent intent);
-    }
-
-    private EditText codeDisplay;
-    private final List<BroadcastReceiver> registeredReceivers = new ArrayList<>();
-
-    // --- Android Lifecycle Methods ---
+    private TextView status;
+    private TextView jsonView;
+    private Button generateBtn;
+    private ProgressBar progress;
+    private String lastJson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("Allsee Screen Control Demo");
 
-        setupUI();
-        registerApiReceivers();
+        // ==== Programmatic UI (no XML) ====
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        root.setPadding(pad, pad, pad, pad);
+        scroll.addView(root, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView title = new TextView(this);
+        title.setText("Allsee Codec Reporter");
+        title.setTextSize(22);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+
+        status = new TextView(this);
+        status.setText("Tap ‘Generate’ to query system codecs.");
+        status.setTextSize(14);
+
+        progress = new ProgressBar(this);
+        progress.setIndeterminate(true);
+        progress.setVisibility(View.GONE);
+
+        generateBtn = new Button(this);
+        generateBtn.setText("Generate report");
+
+        LinearLayout btnRow = new LinearLayout(this);
+        btnRow.setOrientation(LinearLayout.HORIZONTAL);
+        btnRow.setGravity(Gravity.START);
+        btnRow.addView(generateBtn, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        jsonView = new TextView(this);
+        jsonView.setTextSize(12);
+        jsonView.setTypeface(Typeface.MONOSPACE);
+        jsonView.setTextIsSelectable(true);
+
+        root.addView(title);
+        root.addView(status);
+        root.addView(progress);
+        root.addView(btnRow);
+        root.addView(jsonView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        setContentView(scroll);
+
+        // ==== Actions ====
+        generateBtn.setOnClickListener(v -> generateReport());
+
+        // Optionally auto-generate on first launch
+        generateReport();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Unregister all receivers to prevent memory leaks
-        for (BroadcastReceiver receiver : registeredReceivers) {
-            unregisterReceiver(receiver);
-        }
-        registeredReceivers.clear();
+    private void setBusy(boolean busy) {
+        progress.setVisibility(busy ? View.VISIBLE : View.GONE);
+        generateBtn.setEnabled(!busy);
     }
 
-    // --- Setup Methods ---
-
-    /**
-     * Initializes and configures the user interface.
-     */
-    private void setupUI() {
-        ScrollView scrollView = new ScrollView(this);
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(16, 16, 16, 16);
-        scrollView.addView(layout);
-
-        codeDisplay = new EditText(this);
-        codeDisplay.setTextSize(14);
-        codeDisplay.setHint("Code for the action will be displayed here...");
-        codeDisplay.setFocusable(false); // Make it read-only
-        codeDisplay.setClickable(false);
-        layout.addView(codeDisplay);
-
-        // Populate the UI with buttons from our command list
-        List<ApiCommand> commands = populateApiCommands();
-        for (ApiCommand command : commands) {
-            createApiButton(layout, command);
-        }
-
-        setContentView(scrollView);
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Creates a button from an ApiCommand and adds it to the layout.
-     */
-    private void createApiButton(LinearLayout layout, ApiCommand command) {
-        Button button = new Button(this);
-        button.setText(command.buttonText);
-        button.setAllCaps(false);
-        button.setOnClickListener(v -> {
-            Intent intent = new Intent(command.action);
-            if (command.modifier != null) {
-                command.modifier.modify(intent);
+    private void generateReport() {
+        setBusy(true);
+        status.setText("Querying MediaCodec…");
+        new Thread(() -> {
+            try {
+                JSONObject report = generateCodecReport();
+                String pretty = report.toString(2);
+                lastJson = pretty;
+                String summary = buildSummary(report);
+                runOnUiThread(() -> {
+                    jsonView.setText(pretty);
+                    status.setText(summary);
+                    setBusy(false);
+                });
+            } catch (Throwable t) {
+                Log.e(TAG, "Failed to generate", t);
+                runOnUiThread(() -> {
+                    status.setText("Failed: " + t.getMessage());
+                    setBusy(false);
+                });
             }
-            sendBroadcast(intent);
-            codeDisplay.setText(command.codeSample);
-        });
-        layout.addView(button);
+        }).start();
     }
 
-    /**
-     * Registers all necessary broadcast receivers for getting status updates from the system.
-     */
-    private void registerApiReceivers() {
-        registerReceiver(brightnessReceiver, Constants.NOTIFY_BRIGHTNESS);
-        registerReceiver(volumeReceiver, Constants.NOTIFY_VOLUME);
-        registerReceiver(powerStatusReceiver, Constants.NOTIFY_POWER_STATUS);
-        registerReceiver(portReceiver, Constants.NOTIFY_PORT);
-        registerReceiver(orientationReceiver, Constants.NOTIFY_ORIENTATION);
-        registerReceiver(irReceiver, Constants.NOTIFY_IR_REMOTE);
-        registerReceiver(touchReceiver, Constants.NOTIFY_TOUCH);
-        registerReceiver(irHomeReceiver, Constants.NOTIFY_IR_HOME);
-    }
-
-    /**
-     * Helper method to register a receiver and add it to a list for later un-registration.
-     * This also handles the API level check for the exported flag.
-     */
-    private void registerReceiver(BroadcastReceiver receiver, String action) {
-        IntentFilter filter = new IntentFilter(action);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // The RECEIVER_NOT_EXPORTED flag is required for apps targeting API 33+
-            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(receiver, filter);
+    private String buildSummary(JSONObject report) {
+        try {
+            JSONObject device = report.getJSONObject("device");
+            JSONArray decs = report.getJSONArray("decoders");
+            boolean avc4k = has4k(decs, "video/avc");
+            boolean hevc4k = has4k(decs, "video/hevc");
+            boolean vp94k = has4k(decs, "video/vp9");
+            boolean av14k = has4k(decs, "video/av01");
+            List<String> lines = new ArrayList<>();
+            lines.add(device.optString("brand") + " " + device.optString("model") + " (Android " + device.optString("android") + ")");
+            lines.add("H.265/HEVC 4K: " + (hevc4k ? "YES" : "NO"));
+            lines.add("H.264/AVC 4K: " + (avc4k ? "YES" : "NO"));
+            lines.add("VP9 4K:       " + (vp94k ? "YES" : "NO"));
+            lines.add("AV1 4K:       " + (av14k ? "YES" : "NO"));
+            return join("\n", lines);
+        } catch (Exception e) {
+            return "Summary unavailable: " + e.getMessage();
         }
-        registeredReceivers.add(receiver);
     }
 
-    // --- Broadcast Receivers ---
+    private boolean has4k(JSONArray decs, String mime) {
+        for (int i = 0; i < decs.length(); i++) {
+            JSONObject o = decs.optJSONObject(i);
+            if (o == null) continue;
+            if (mime.equals(o.optString("mime")) && o.optBoolean("supports4kSize", false)) return true;
+        }
+        return false;
+    }
 
-    private final BroadcastReceiver brightnessReceiver = createReceiver("Brightness", Constants.EXTRA_LIGHT);
-    private final BroadcastReceiver volumeReceiver = createReceiver("Volume", Constants.EXTRA_VOLUME);
-    private final BroadcastReceiver powerStatusReceiver = createReceiver("Power Status", "status");
-    private final BroadcastReceiver portReceiver = createReceiver("Port", Constants.EXTRA_PORT);
-    private final BroadcastReceiver orientationReceiver = createReceiver("Orientation", Constants.EXTRA_ORIENTATION);
-    private final BroadcastReceiver irReceiver = createReceiver("IR Status", Constants.EXTRA_STATE);
-    private final BroadcastReceiver touchReceiver = createReceiver("Touch Status", Constants.EXTRA_STATE);
-    private final BroadcastReceiver irHomeReceiver = createReceiver("IR Home Status", Constants.EXTRA_STATE);
+    private String join(String sep, List<String> items) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            if (i > 0) sb.append(sep);
+            sb.append(items.get(i));
+        }
+        return sb.toString();
+    }
 
-    /**
-     * Factory method to create a generic BroadcastReceiver for displaying integer values.
-     *
-     * @param name      The name to display (e.g., "Brightness", "Volume").
-     * @param extraKey  The key for the integer extra in the received Intent.
-     * @return A configured BroadcastReceiver instance.
-     */
-    private BroadcastReceiver createReceiver(@NonNull String name, @NonNull String extraKey) {
-        return new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
+    // ===== Codec inspection logic (optimized/expanded) =====
 
-                String action = intent.getAction() != null ? intent.getAction() : "null";
-                Log.d("ApiReceiver", "Received broadcast: " + action);
+    private String profileName(String mime, int p) {
+        switch (mime) {
+            case "video/avc":
+                if (p == MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline) return "AVC Baseline";
+                if (p == MediaCodecInfo.CodecProfileLevel.AVCProfileMain) return "AVC Main";
+                if (p == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) return "AVC High";
+                return "AVC p=" + p;
+            case "video/hevc":
+                if (p == MediaCodecInfo.CodecProfileLevel.HEVCProfileMain) return "HEVC Main";
+                if (p == MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10) return "HEVC Main10";
+                return "HEVC p=" + p;
+            case "video/vp9":
+                if (p == MediaCodecInfo.CodecProfileLevel.VP9Profile0) return "VP9 Profile0";
+                if (p == MediaCodecInfo.CodecProfileLevel.VP9Profile2) return "VP9 Profile2 (10-bit)";
+                return "VP9 p=" + p;
+            case "video/av01":
+                return "AV1 p=" + p;
+            default:
+                return mime + " p=" + p;
+        }
+    }
 
-                // ---------- robust "any-type" read ----------
-                Bundle extras = intent.getExtras();
-                String displayText;
+    private String avcLevelName(int level) {
+        // Map the common AVC level ints to human-readable labels
+        try {
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel1) return "Level 1.0";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel1b) return "Level 1b";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel11) return "Level 1.1";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel12) return "Level 1.2";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel13) return "Level 1.3";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel2)  return "Level 2.0";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel21) return "Level 2.1";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel22) return "Level 2.2";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel3)  return "Level 3.0";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel31) return "Level 3.1";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel32) return "Level 3.2";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel4)  return "Level 4.0";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel41) return "Level 4.1";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel42) return "Level 4.2";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel5)  return "Level 5.0";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel51) return "Level 5.1";
+            if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel52) return "Level 5.2";
+            if (Build.VERSION.SDK_INT >= 23) {
+                if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel6)  return "Level 6.0";
+                if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel61) return "Level 6.1";
+                if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel62) return "Level 6.2";
+            }
+        } catch (Throwable ignored) {}
+        return "Level " + level;
+    }
 
-                if (extras != null && extras.containsKey(extraKey)) {
+    private JSONObject generateCodecReport() throws Exception {
+        final List<String> wanted = Arrays.asList(
+                "video/avc", "video/hevc", "video/vp9", "video/av01", "video/x-vnd.on2.vp8"
+        );
 
-                    Object obj = extras.get(extraKey);
+        final MediaCodecInfo[] infos = new MediaCodecList(MediaCodecList.ALL_CODECS).getCodecInfos();
+        final JSONArray out = new JSONArray();
 
-                    if (obj instanceof Integer) {                    // sender used putExtra(key, 123)
-                        displayText = "Received " + name + ": " + obj;
+        for (MediaCodecInfo ci : infos) {
+            if (ci.isEncoder()) continue;
 
-                    } else if (obj instanceof String) {              // sender used putExtra(key, "123")
-                        String s = (String) obj;
-                        displayText = "Received " + name + ": " + s;
+            String[] types;
+            try {
+                types = ci.getSupportedTypes();
+            } catch (Throwable t) {
+                continue;
+            }
 
-                    } else {                                         // some other unexpected type
-                        displayText = "Error: " + name +
-                                " has unsupported type (" +
-                                (obj != null ? obj.getClass().getSimpleName() : "null") + ")";
-                        Log.w("ApiReceiver", displayText);
-                    }
+            for (String type : types) {
+                if (!wanted.contains(type)) continue;
 
-                } else {                                             // extra missing entirely
-                    displayText = "Error: " + name + " not found in Intent.";
-                    Log.w("ApiReceiver", displayText + " Intent: " + intent);
+                MediaCodecInfo.CodecCapabilities cap;
+                try {
+                    cap = ci.getCapabilitiesForType(type);
+                } catch (Throwable t) {
+                    continue;
                 }
 
-                // ---------- update UI + log ----------
-                codeDisplay.setText(displayText);
-                Log.d("ApiReceiver", displayText);
+                final MediaCodecInfo.VideoCapabilities v = cap.getVideoCapabilities();
+                if (v == null) continue;
+
+                // ===== 4K checks (robust order) =====
+                final int W4K = 3840, H4K = 2160;
+                boolean supports4kSize = false;
+                boolean supports4k30 = false;
+                boolean supports4k60 = false;
+
+                // 1) Exact capability queries first
+                try {
+                    supports4kSize = v.isSizeSupported(W4K, H4K);
+                } catch (Throwable ignored) {
+                    // fallback to range containment if vendor throws
+                    try {
+                        Range<Integer> widths = v.getSupportedWidths();
+                        Range<Integer> heights = v.getSupportedHeights();
+                        supports4kSize = (widths != null && heights != null
+                                && widths.contains(W4K) && heights.contains(H4K));
+                    } catch (Throwable ignored2) {}
+                }
+
+                try {
+                    if (supports4kSize) {
+                        // areSizeAndRateSupported is precise when implemented
+                        supports4k30 = v.areSizeAndRateSupported(W4K, H4K, 30.0);
+                        supports4k60 = v.areSizeAndRateSupported(W4K, H4K, 60.0);
+                    }
+                } catch (Throwable ignored) {}
+
+                // 2) Performance points (API 29+) as hint/confirmation
+                if (Build.VERSION.SDK_INT >= 29) {
+                    try {
+                        List<MediaCodecInfo.VideoCapabilities.PerformancePoint> pps = v.getSupportedPerformancePoints();
+                        if (pps != null && !pps.isEmpty()) {
+                            final MediaFormat fmt30 = MediaFormat.createVideoFormat(type, W4K, H4K);
+                            fmt30.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
+                            final MediaFormat fmt60 = MediaFormat.createVideoFormat(type, W4K, H4K);
+                            fmt60.setInteger(MediaFormat.KEY_FRAME_RATE, 60);
+                            for (MediaCodecInfo.VideoCapabilities.PerformancePoint pp : pps) {
+                                if (!supports4k30 && pp.covers(fmt30)) supports4k30 = true;
+                                if (!supports4k60 && pp.covers(fmt60)) supports4k60 = true;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
+
+                // 3) Fallback: frame-rate range for 4K size
+                if (supports4kSize && (!supports4k30 || !supports4k60)) {
+                    try {
+                        Range<Double> fr4k = v.getSupportedFrameRatesFor(W4K, H4K);
+                        if (fr4k != null) {
+                            double up = fr4k.getUpper();
+                            if (up >= 30.0) supports4k30 = true;
+                            if (up >= 60.0) supports4k60 = true;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+
+                // ===== Basic properties =====
+                Range<Integer> widths = null, heights = null;
+                String supportedWidths = "", supportedHeights = "", bitrateRange = "";
+                try {
+                    widths = v.getSupportedWidths();
+                    heights = v.getSupportedHeights();
+                    if (widths != null) supportedWidths = widths.getLower() + "-" + widths.getUpper();
+                    if (heights != null) supportedHeights = heights.getLower() + "-" + heights.getUpper();
+                    bitrateRange = v.getBitrateRange().getLower() + "-" + v.getBitrateRange().getUpper();
+                } catch (Throwable ignored) {}
+
+                int wAlign = 0, hAlign = 0;
+                try {
+                    wAlign = v.getWidthAlignment();
+                    hAlign = v.getHeightAlignment();
+                } catch (Throwable ignored) {}
+
+                // Profiles/levels
+                JSONArray profiles = new JSONArray();
+                boolean hintsHdr10bit = false;
+                if (cap.profileLevels != null) {
+                    for (MediaCodecInfo.CodecProfileLevel pl : cap.profileLevels) {
+                        JSONObject p = new JSONObject();
+                        p.put("profile", profileName(type, pl.profile));
+                        // Add friendlier AVC level name if we can
+                        if ("video/avc".equals(type)) {
+                            p.put("levelName", avcLevelName(pl.level));
+                        }
+                        p.put("level", pl.level);
+                        profiles.put(p);
+
+                        // crude HDR-ish hint
+                        if ("video/hevc".equals(type) &&
+                                pl.profile == MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10) {
+                            hintsHdr10bit = true;
+                        }
+                        if ("video/vp9".equals(type) &&
+                                pl.profile == MediaCodecInfo.CodecProfileLevel.VP9Profile2) {
+                            hintsHdr10bit = true;
+                        }
+                    }
+                }
+
+                boolean isHw = false, isSw = false, isVendor = false;
+                if (Build.VERSION.SDK_INT >= 29) {
+                    try { isHw = ci.isHardwareAccelerated(); } catch (Throwable ignored) {}
+                    try { isSw = ci.isSoftwareOnly(); } catch (Throwable ignored) {}
+                    try { isVendor = ci.isVendor(); } catch (Throwable ignored) {}
+                }
+
+                boolean tunneled = false, secure = false;
+                try { tunneled = cap.isFeatureSupported(MediaCodecInfo.CodecCapabilities.FEATURE_TunneledPlayback); } catch (Throwable ignored) {}
+                try { secure = cap.isFeatureSupported(MediaCodecInfo.CodecCapabilities.FEATURE_SecurePlayback); } catch (Throwable ignored) {}
+
+                JSONObject obj = new JSONObject();
+                obj.put("codecName", ci.getName());
+                obj.put("mime", type);
+                obj.put("isHardwareAccelerated", isHw);
+                obj.put("isSoftwareOnly", isSw);
+                obj.put("isVendor", isVendor);
+                obj.put("supportedWidths", supportedWidths);
+                obj.put("supportedHeights", supportedHeights);
+                obj.put("widthAlignment", wAlign);
+                obj.put("heightAlignment", hAlign);
+                obj.put("bitrateRange", bitrateRange);
+                obj.put("profiles", profiles);
+                obj.put("supports4kSize", supports4kSize);
+                obj.put("supports4k_30fps", supports4k30);
+                obj.put("supports4k_60fps", supports4k60);
+                obj.put("supportsTunneled", tunneled);
+                obj.put("supportsSecure", secure);
+                obj.put("hintsHdr10bit", hintsHdr10bit);
+
+                out.put(obj);
             }
-        };
-    }
+        }
 
-    /**
-     * Defines the list of all API commands that will be displayed as buttons in the UI.
-     * To add a new button, simply add a new ApiCommand to this list.
-     *
-     * @return A list of ApiCommand objects.
-     */
-    private List<ApiCommand> populateApiCommands() {
-        List<ApiCommand> commands = new ArrayList<>();
+        JSONObject device = new JSONObject();
+        device.put("brand", Build.BRAND);
+        device.put("model", Build.MODEL);
+        device.put("device", Build.DEVICE);
+        device.put("android", Build.VERSION.RELEASE);
+        device.put("sdk", Build.VERSION.SDK_INT);
 
-        // USB Power
-        commands.add(
-                new ApiCommand(
-                        /* title  */ "USB Power ON",
-                        /* action */ Constants.ACTION_SET_USB_POWER,          // still "com.assist.set.usbpower"
-                        /* code   */
-                        "Intent intent = new Intent(\"com.assist.set.usbpower\");\n" +
-                                "intent.putExtra(\"usbNumber\", 0);\n" +
-                                "intent.putExtra(\"usbPower\", 1);\n" +
-                                "context.sendBroadcast(intent);",
-                        /* filler */
-                        intent -> {
-                            intent.putExtra("usbNumber", 0);                   // or Constants.EXTRA_USB_NUMBER
-                            intent.putExtra(Constants.EXTRA_USB_POWER, 1);     // keeps your existing constant
-                        }
-                )
-        );
-        commands.add(
-                new ApiCommand(
-                        /* title  */ "USB Power OFF",
-                        /* action */ Constants.ACTION_SET_USB_POWER,          // still "com.assist.set.usbpower"
-                        /* code   */
-                        "Intent intent = new Intent(\"com.assist.set.usbpower\");\n" +
-                                "intent.putExtra(\"usbNumber\", 0);\n" +
-                                "intent.putExtra(\"usbPower\", 0);\n" +
-                                "context.sendBroadcast(intent);",
-                        /* filler */
-                        intent -> {
-                            intent.putExtra("usbNumber", 0);                   // or Constants.EXTRA_USB_NUMBER
-                            intent.putExtra(Constants.EXTRA_USB_POWER, 0);     // keeps your existing constant
-                        }
-                )
-        );
-
-        // Power State
-        commands.add(new ApiCommand("Sleep", Constants.ACTION_SET_POWER_STATE, "Intent intent = new Intent(\"com.assist.sleep.timeonoff\");\nintent.putExtra(\"sleepType\", 2);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_SLEEP_TYPE, 2)));
-        commands.add(new ApiCommand("Shutdown", Constants.ACTION_SET_POWER_STATE, "Intent intent = new Intent(\"com.assist.sleep.timeonoff\");\nintent.putExtra(\"sleepType\", 1);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_SLEEP_TYPE, 1)));
-        commands.add(new ApiCommand("Reboot", Constants.ACTION_REBOOT, "Intent intent = new Intent(\"com.assist.reboot.action\");\ncontext.sendBroadcast(intent);", null));
-        commands.add(new ApiCommand("Shutdown & Wake in 2 Min", Constants.ACTION_SET_POWER_STATE, "Intent intent = new Intent(\"com.assist.sleep.timeonoff\");\nintent.putExtra(\"sleepType\", 1);\nintent.putExtra(\"onTime\", 120);\ncontext.sendBroadcast(intent);", intent -> {
-            intent.putExtra(Constants.EXTRA_SLEEP_TYPE, 1);
-            intent.putExtra(Constants.EXTRA_ON_TIME, 120);
-        }));
-        commands.add(new ApiCommand("Get Power Status", Constants.ACTION_GET_POWER_STATUS, "Intent intent = new Intent(\"com.assist.get.power.status\");\ncontext.sendBroadcast(intent);", null));
-
-        // Brightness
-        commands.add(new ApiCommand("Set Brightness to 10", Constants.ACTION_SET_BRIGHTNESS, "Intent intent = new Intent(\"com.assist.set.light\");\nintent.putExtra(\"light\", 10);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_LIGHT, 10)));
-        commands.add(new ApiCommand("Set Brightness to 100", Constants.ACTION_SET_BRIGHTNESS, "Intent intent = new Intent(\"com.assist.set.light\");\nintent.putExtra(\"light\", 100);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_LIGHT, 100)));
-        commands.add(new ApiCommand("Get Brightness", Constants.ACTION_GET_BRIGHTNESS, "Intent intent = new Intent(\"com.assist.get.light\");\ncontext.sendBroadcast(intent);", null));
-
-        // Volume
-        commands.add(new ApiCommand("Set Volume to 0", Constants.ACTION_SET_VOLUME, "Intent intent = new Intent(\"com.assist.set.volume\");\nintent.putExtra(\"volume\", 0);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_VOLUME, 0)));
-        commands.add(new ApiCommand("Set Volume to 50", Constants.ACTION_SET_VOLUME, "Intent intent = new Intent(\"com.assist.set.volume\");\nintent.putExtra(\"volume\", 50);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_VOLUME, 50)));
-        commands.add(new ApiCommand("Get Volume", Constants.ACTION_GET_VOLUME, "Intent intent = new Intent(\"com.assist.get.volume\");\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_VOLUME, true)));
-
-        // Input/Output Source
-        commands.add(new ApiCommand("Set Input to HDMI", Constants.ACTION_SET_PORT, "Intent intent = new Intent(\"com.assist.set.port\");\nintent.putExtra(\"port\", \"HDMI\");\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_PORT, "HDMI")));
-        commands.add(new ApiCommand("Get Input Source", Constants.ACTION_GET_PORT, "Intent intent = new Intent(\"com.assist.get.port\");\ncontext.sendBroadcast(intent);", null));
-
-        // Orientation
-        commands.add(new ApiCommand("Set Orientation to 90°", Constants.ACTION_SET_ORIENTATION, "Intent intent = new Intent(\"com.assist.set.system.orientation\");\nintent.putExtra(\"orientation\", 90);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_ORIENTATION, 90)));
-        commands.add(new ApiCommand("Get Orientation", Constants.ACTION_GET_ORIENTATION, "Intent intent = new Intent(\"com.assist.get.system.orientation\");\ncontext.sendBroadcast(intent);", null));
-
-        // IR Remote
-        commands.add(new ApiCommand("Enable IR Remote", Constants.ACTION_SET_IR_REMOTE, "Intent intent = new Intent(\"com.assist.set.remote\");\nintent.putExtra(\"state\", 0);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 0)));
-        commands.add(new ApiCommand("Disable IR (Power Wake OK)", Constants.ACTION_SET_IR_REMOTE, "Intent intent = new Intent(\"com.assist.set.remote\");\nintent.putExtra(\"state\", 1);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 1)));
-        commands.add(new ApiCommand("Get IR Status", Constants.ACTION_GET_IR_REMOTE, "Intent intent = new Intent(\"com.assist.get.remote\");\ncontext.sendBroadcast(intent);", null));
-
-        // IR HOME Remote
-        commands.add(new ApiCommand("Enable IR HOME Remote", Constants.ACTION_SET_IR_HOME_REMOTE, "Intent intent = new Intent(\"com.assist.sethome.action\");\nintent.putExtra(\"state\", 0);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 0)));
-        commands.add(new ApiCommand("Disable IR HOME Remote", Constants.ACTION_SET_IR_HOME_REMOTE, "Intent intent = new Intent(\"com.assist.sethome.action\");\nintent.putExtra(\"state\", 1);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 1)));
-        commands.add(new ApiCommand("Get IR HOME Status", Constants.ACTION_GET_IR_HOME_REMOTE, "Intent intent = new Intent(\"com.assist.gethome.action\");\ncontext.sendBroadcast(intent);", null));
-
-        // Touch
-        commands.add(new ApiCommand("Enable Touch", Constants.ACTION_SET_TOUCH, "Intent intent = new Intent(\"com.assist.set.touch\");\nintent.putExtra(\"state\", 0);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 0)));
-        commands.add(new ApiCommand("Disable Touch", Constants.ACTION_SET_TOUCH, "Intent intent = new Intent(\"com.assist.set.touch\");\nintent.putExtra(\"state\", 1);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 1)));
-        commands.add(new ApiCommand("Get Touch Status", Constants.ACTION_GET_TOUCH, "Intent intent = new Intent(\"com.assist.get.touch\");\ncontext.sendBroadcast(intent);", null));
-
-        // Navigation Bar
-        commands.add(new ApiCommand("Show Nav Bar", Constants.ACTION_SET_NAV_BAR, "Intent intent = new Intent(\"com.assist.switch.navigation.action\");\nintent.putExtra(\"state\", 0);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 0)));
-        commands.add(new ApiCommand("Hide Nav Bar", Constants.ACTION_SET_NAV_BAR, "Intent intent = new Intent(\"com.assist.switch.navigation.action\");\nintent.putExtra(\"state\", 1);\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_STATE, 1)));
-
-        // Miscellaneous
-        commands.add(new ApiCommand("Take Screenshot", Constants.ACTION_TAKE_SCREENSHOT, "Intent intent = new Intent(\"com.assist.screencap.action\");\nintent.putExtra(\"screen_hdmi_path\", \"/storage/emulated/0/Download/screenshot.png\");\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_SCREENSHOT_PATH, "/storage/emulated/0/Download/screenshot.png")));
-        commands.add(new ApiCommand("Kill This App", Constants.ACTION_KILL_APP, "Intent intent = new Intent(\"com.assist.kill.app.action\");\nintent.putExtra(\"packageName\", getPackageName());\ncontext.sendBroadcast(intent);", intent -> intent.putExtra(Constants.EXTRA_PACKAGE_NAME, getPackageName())));
-
-        return commands;
+        JSONObject root = new JSONObject();
+        root.put("device", device);
+        root.put("decoders", out);
+        return root;
     }
 }
