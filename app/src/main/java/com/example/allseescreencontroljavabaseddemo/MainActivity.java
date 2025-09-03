@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -19,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Allsee Screen Control – Minimal, developer-friendly demo.
@@ -125,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------------
     private TextView codePane;
     private final List<BroadcastReceiver> trackedReceivers = new ArrayList<>();
+    private int lastVolume = -1;  // NEW: Track last known volume (-1 = unknown)
+    private int lastMute = -1;    // NEW: Track last known mute (-1 = unknown)
 
     // ---------------------------------------------------------------------
     //  Lifecycle
@@ -182,6 +182,11 @@ public class MainActivity extends AppCompatActivity {
             b.setAllCaps(false);
             b.setText(cmd.title);
             b.setOnClickListener(v -> {
+                // NEW: Reset volume/mute trackers before sending GET_VOLUME
+                if (cmd.action.equals(C.GET_VOLUME)) {
+                    lastVolume = -1;
+                    lastMute = -1;
+                }
                 Intent i = new Intent(cmd.action);
                 if (cmd.modifier != null) cmd.modifier.modify(i);
                 sendBroadcast(i);
@@ -287,11 +292,22 @@ public class MainActivity extends AppCompatActivity {
 
     private final BroadcastReceiver volumeReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
-            StringBuilder sb = new StringBuilder();
-            if (i.hasExtra(C.EXTRA_VOLUME)) sb.append("Volume: ").append(i.getIntExtra(C.EXTRA_VOLUME, -1)).append('\n');
-            if (i.hasExtra(C.EXTRA_MUTE))   sb.append("Mute: ").append(i.getIntExtra(C.EXTRA_MUTE, -1)); // 0:unmute 1:mute
-            String out = sb.toString().trim();
-            codePane.setText(out.isEmpty() ? "No volume info in notify." : out);
+            boolean updated = false;
+            if (i.hasExtra(C.EXTRA_VOLUME)) {
+                lastVolume = i.getIntExtra(C.EXTRA_VOLUME, -1);
+                updated = true;
+            }
+            if (i.hasExtra(C.EXTRA_MUTE)) {
+                lastMute = i.getIntExtra(C.EXTRA_MUTE, -1);
+                updated = true;
+            }
+            if (updated) {
+                StringBuilder sb = new StringBuilder();
+                if (lastVolume != -1) sb.append("Volume: ").append(lastVolume).append('\n');
+                if (lastMute != -1) sb.append("Mute: ").append(lastMute);  // 0:unmute 1:mute
+                String out = sb.toString().trim();
+                codePane.setText(out.isEmpty() ? "No volume info in notify." : out);
+            }
         }
     };
 
@@ -475,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
                 "Intent i = new Intent(\"com.assist.get.volume\");\n" +
                         "i.putExtra(\"volume\", true);\n" +
                         "sendBroadcast(i);",
-                i -> { i.putExtra(C.EXTRA_VOLUME, true); }
+                i -> i.putExtra(C.EXTRA_VOLUME, true)
         ));
         list.add(new ApiCommand(
                 "Get Mute",
@@ -483,8 +499,21 @@ public class MainActivity extends AppCompatActivity {
                 "Intent i = new Intent(\"com.assist.get.volume\");\n" +
                         "i.putExtra(\"mute\", true);\n" +
                         "sendBroadcast(i);",
-                i -> { i.putExtra(C.EXTRA_MUTE, true); }
+                i -> i.putExtra(C.EXTRA_MUTE, true)
         ));
+        list.add(new ApiCommand(  // Your new combined command
+                "Get Mute and Volume",
+                C.GET_VOLUME,
+                "Intent i = new Intent(\"com.assist.get.volume\");\n" +
+                        "i.putExtra(\"mute\", true);\n" +
+                        "i.putExtra(\"volume\", true);\n" +
+                        "sendBroadcast(i);",
+                i -> {
+                    i.putExtra(C.EXTRA_MUTE, true);
+                    i.putExtra(C.EXTRA_VOLUME, true);
+                }
+        ));
+
         // Input / Output Source --------------------------------------------
         list.add(new ApiCommand(
                 "Input: HDMI",
