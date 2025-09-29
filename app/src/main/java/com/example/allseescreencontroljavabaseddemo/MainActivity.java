@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         static final String SET_TOUCH            = "com.assist.set.touch";
         static final String SET_AUDIO_CHANNEL    = "com.assist.set.audio.channel";
         static final String SET_LOGO_STYLE       = "com.assist.set.logostyle";   // NEW
+        static final String SET_AMBIENT_LIGHT       = "com.assist.set.ambientlight";
 
         // ===== Get requests =====
         static final String GET_BRIGHTNESS       = "com.assist.get.light";
@@ -66,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         static final String GET_AUDIO_CHANNEL    = "com.assist.get.audio.channel";
         static final String GET_USB_POWER        = "com.assist.get.usbpower";    // NEW
         static final String GET_LOGO_STYLE       = "com.assist.get.logostyle";   // NEW
+        static final String GET_AMBIENT_LIGHT       = "com.assist.get.ambientlight";
 
         // ===== Notify (responses) =====
         static final String NOTIFY_BRIGHTNESS    = "com.assist.notify.light";
@@ -79,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         static final String NOTIFY_AUDIO_CHANNEL = "com.assist.notify.audio.channel";
         static final String NOTIFY_USB_POWER     = "com.assist.notify.usbpower";   // NEW
         static final String NOTIFY_LOGO_STYLE    = "com.assist.notify.logostyle";  // NEW
+        static final String NOTIFY_AMBIENT_LIGHT    = "com.assist.notify.ambientlight";
 
         // ===== Extras =====
         static final String EXTRA_MODE           = "mode";
@@ -97,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         static final String EXTRA_MUTE           = "mute";
         static final String EXTRA_ORIENTATION    = "orientation";
         static final String EXTRA_LOGO_STYLE     = "logoStyle";       // NEW
+        static final String EXTRA_AMBIENT_LIGHT     = "state";
     }
 
     // ---------------------------------------------------------------------
@@ -228,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
         registerAndTrack(audioChannelReceiver, C.NOTIFY_AUDIO_CHANNEL);
         registerAndTrack(usbPowerReceiver, C.NOTIFY_USB_POWER);           // NEW
         registerAndTrack(logoStyleReceiver, C.NOTIFY_LOGO_STYLE);         // NEW
+        registerAndTrack(ambientLightReceiver, C.NOTIFY_AMBIENT_LIGHT);
     }
 
     /** Helper to register + remember receivers (handles API 33+ flag). */
@@ -333,9 +338,31 @@ public class MainActivity extends AppCompatActivity {
     // NEW: pretty print logo style (0/1/2)
     private final BroadcastReceiver logoStyleReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
-            int style = i.getIntExtra(C.EXTRA_LOGO_STYLE, -1);
+            int style = i.getIntExtra(C.EXTRA_LOGO_STYLE, -1000);
             String msg = "Scaler Logo Style: " + decodeLogoStyle(style) + " [" + style + "]";
             codePane.setText(msg);
+        }
+    };
+
+    private final BroadcastReceiver ambientLightReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int state = intent.getIntExtra("state", -2);
+            String status;
+            switch (state) {
+                case -1:
+                    status = "Not Supported";
+                    break;
+                case 0:
+                    status = "Enabled";
+                    break;
+                case 1:
+                    status = "Disabled";
+                    break;
+                default:
+                    status = "Unknown(" + state + ")";
+            }
+            codePane.setText("Current auto ambient light switch state: " + status + " [" + state + "]");
         }
     };
 
@@ -753,6 +780,30 @@ public class MainActivity extends AppCompatActivity {
                 null
         ));
 
+        // Ambient Light  ------------------------------------------------- (NEW)
+        list.add(new ApiCommand(
+                "Enable AUTO Ambient Light",
+                C.SET_AMBIENT_LIGHT,
+                "Intent i = new Intent(\"com.assist.set.ambientlight\");\n" +
+                        "i.putExtra(\"state\", 0);\n" +
+                        "sendBroadcast(i);",
+                i -> i.putExtra(C.EXTRA_AMBIENT_LIGHT, 0)
+        ));
+        list.add(new ApiCommand(
+                "Disable AUTO Ambient Light",
+                C.SET_AMBIENT_LIGHT,
+                "Intent i = new Intent(\"com.assist.set.ambientlight\");\n" +
+                        "i.putExtra(\"state\", 1);\n" +
+                        "sendBroadcast(i);",
+                i -> i.putExtra(C.EXTRA_AMBIENT_LIGHT, 1)
+        ));
+        list.add(new ApiCommand(
+                "Get AUTO Ambient Light",
+                C.GET_AMBIENT_LIGHT,
+                "sendBroadcast(new Intent(\"com.assist.get.ambientlight\"));",
+                null
+        ));
+
         return list;
     }
 
@@ -770,6 +821,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static String decodeLogoStyle(int style) {
         switch (style) {
+            case -1: return "Do not support";
             case 0: return "Android";
             case 2: return "Videri";
             default: return "Unknown";

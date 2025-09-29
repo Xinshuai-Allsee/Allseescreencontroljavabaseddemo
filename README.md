@@ -20,7 +20,7 @@
 * [Set Touch Screen State](#set-touch-screen-state)
 * [Set Audio Output Channel](#set-audio-output-channel)
 * [Scaler Logo Style (Set/Get)](#scaler-logo-style-setget)
-
+* [Ambient Light Auto Switch (Set/Get)](#ambient-light-auto-switch-setget)
 ---
 
 ## Toggle USB Power
@@ -540,8 +540,8 @@ context.sendBroadcast(intent);
 
 ### **Parameters**
 
-| **Parameter Name** | **Description**                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------ |
+| **Parameter Name** | **Description**                                                                                                          |
+| ------------------ |--------------------------------------------------------------------------------------------------------------------------|
 | `orientation`      | `0`: Landscape (0°)<br>`90`: Portrait (90°)<br>`180`: Landscape (180°)<br>`270`: Portrait (270°) |
 
 ### **Example Usage**
@@ -575,9 +575,9 @@ registerReceiver(orientationReceiver, new IntentFilter("com.assist.notify.orient
 private final BroadcastReceiver orientationReceiver = new BroadcastReceiver() {
   @Override
   public void onReceive(Context context, Intent intent) {
-    int orientation = intent.getIntExtra("orientation", -1);
-    if (orientation != -1) {
-      Log.d("Orientation", "Received orientation: " + orientation);
+    int orientation = intent.getIntExtra("orientation", -1000);
+    if (orientation != -1000) {
+      Log.d("Orientation", "Received orientation: " + orientation); //-1: Do not support; 0:0; 90:90; 180:180; 270:270
     } else {
       Log.e("Orientation", "Error: Failed to receive orientation.");
     }
@@ -628,9 +628,9 @@ registerReceiver(irReceiver, new IntentFilter("com.assist.notify.remote"), Conte
 private final BroadcastReceiver irReceiver = new BroadcastReceiver() {
   @Override
   public void onReceive(Context context, Intent intent) {
-    int state = intent.getIntExtra("state", -1);
-    if (state != -1) {
-      Log.d("IRRemote", "Received IR remote state: " + state);
+    int state = intent.getIntExtra("state", -1000);
+    if (state != -1000) {
+      Log.d("IRRemote", "Received IR remote state: " + state); // -1:Do not support; `0`: Enable IR remote.<br>`1`: Disable IR remote (power button can still wake device).<br>`2`: Disable IR remote completely.
     } else {
       Log.e("IRRemote", "Error: Failed to receive IR remote state.");
     }
@@ -681,9 +681,9 @@ registerReceiver(irHomeReceiver, new IntentFilter("com.assist.notify.homekey.dis
 private final BroadcastReceiver irHomeReceiver = new BroadcastReceiver() {
   @Override
   public void onReceive(Context context, Intent intent) {
-    int state = intent.getIntExtra("state", -1);
-    if (state != -1) {
-      Log.d("IRHome", "Received IR Home key state: " + state);
+    int state = intent.getIntExtra("state", -1000);
+    if (state != -1000) {
+      Log.d("IRHome", "Received IR Home key state: " + state); // -1:Do not support; `0`: Enabled<br>`1`: Disabled
     } else {
       Log.e("IRHome", "Error: Failed to receive IR Home key state.");
     }
@@ -734,9 +734,9 @@ registerReceiver(touchReceiver, new IntentFilter("com.assist.notify.touch"), Con
 private final BroadcastReceiver touchReceiver = new BroadcastReceiver() {
   @Override
   public void onReceive(Context context, Intent intent) {
-    int state = intent.getIntExtra("state", -1);
-    if (state != -1) {
-      Log.d("Touch", "Received touch state: " + state);
+    int state = intent.getIntExtra("state", -1000);
+    if (state != -1000) {
+      Log.d("Touch", "Received touch state: " + state); // -1:Do not support; `0`: Touch enabled<br>`1`: Touch disabled
     } else {
       Log.e("Touch", "Error: Failed to receive touch state.");
     }
@@ -874,10 +874,10 @@ registerReceiver(logoStyleReceiver, new IntentFilter("com.assist.notify.logostyl
 private final BroadcastReceiver logoStyleReceiver = new BroadcastReceiver() {
   @Override
   public void onReceive(Context context, Intent intent) {
-    int style = intent.getIntExtra("logoStyle", -1);
-    if (style != -1) {
+    int style = intent.getIntExtra("logoStyle", -1000);
+    if (style != -1000) {
       String name = (style == 0) ? "Android" : (style == 1) ? "X" : (style == 2) ? "Videri" : ("Unknown(" + style + ")");
-      Log.d("LogoStyle", "Current scaler logo style: " + name + " [" + style + "]");
+      Log.d("LogoStyle", "Current scaler logo style: " + name + " [" + style + "]"); // -1:Do not support; `0`: Android, `1`: X, `2`: Videri 
     } else {
       Log.e("LogoStyle", "Failed to receive logoStyle.");
     }
@@ -892,3 +892,76 @@ protected void onDestroy() {
 ```
 
 ---
+
+## Ambient Light Auto Switch (Set/Get)
+
+### Set Ambient Light Auto Switch
+
+* **Broadcast message**: `com.assist.set.ambientlight`
+
+#### **Parameters**
+
+| **Parameter Name** | **Description**           |
+| ------------------ | ------------------------- |
+| `state`            | `0`: Enable, `1`: Disable |
+
+#### **Example Usage**
+
+```java
+Intent intent = new Intent("com.assist.set.ambientlight");
+intent.putExtra("state", 0); // 0: Enable, 1: Disable
+context.sendBroadcast(intent);
+```
+
+### Get Ambient Light Auto Switch
+
+* **Request broadcast**: `com.assist.get.ambientlight`
+* **Response broadcast**: `com.assist.notify.ambientlight`
+
+#### **Response Parameter**
+
+| **Parameter Name** | **Description**                                  |
+| ------------------ | ------------------------------------------------ |
+| `state`            | `-1`: Not Supported, `0`: Enabled, `1`: Disabled |
+
+#### **Example Usage**
+
+```java
+// Ask for the current ambient light auto switch state
+Intent req = new Intent("com.assist.get.ambientlight");
+context.sendBroadcast(req);
+
+// Listen for the answer
+registerReceiver(ambientLightReceiver, new IntentFilter("com.assist.notify.ambientlight"));
+
+private final BroadcastReceiver ambientLightReceiver = new BroadcastReceiver() {
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int state = intent.getIntExtra("state", -2);
+    String status;
+    switch (state) {
+      case -1:
+        status = "Not Supported";
+        break;
+      case 0:
+        status = "Enabled";
+        break;
+      case 1:
+        status = "Disabled";
+        break;
+      default:
+        status = "Unknown(" + state + ")";
+    }
+    Log.d("AmbientLight", "Current auto ambient light switch state: " + status + " [" + state + "]");
+  }
+};
+
+@Override
+protected void onDestroy() {
+  super.onDestroy();
+  unregisterReceiver(ambientLightReceiver);
+}
+```
+
+---
+
