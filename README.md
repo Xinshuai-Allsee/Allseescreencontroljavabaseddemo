@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+* [Board Support](#board-support)
 * [Toggle USB Power](#toggle-usb-power)
 * [Get USB Power State](#get-usb-power-state)
 * [Control Power State (Shutdown/Sleep/Wake)](#control-power-state-shutdownsleepwake)
@@ -21,9 +22,48 @@
 * [Set Audio Output Channel](#set-audio-output-channel)
 * [Scaler Logo Style (Set/Get)](#scaler-logo-style-setget)
 * [Ambient Light Auto Switch (Set/Get)](#ambient-light-auto-switch-setget)
+* [Compatibility Notes](#compatibility-notes)
+
+---
+
+## Board Support
+
+Availability differs by **board generation**. Check this table before relying on a call, and see [Compatibility Notes](#compatibility-notes) for the minimum Android version and receiver registration.
+
+| API | Call | GV3568 | DS3288 | DS3399 |
+| --- | --- | :---: | :---: | :---: |
+| [Toggle USB Power](#toggle-usb-power) | set | ✅ | ✅ | ✅ |
+| [Get USB Power State](#get-usb-power-state) | get | ✅ | ❌ | ❌ |
+| [Control Power State](#control-power-state-shutdownsleepwake) | set + get | ✅ | ✅ | ✅ |
+| [Reboot Screen](#reboot-screen) | set | ✅ | ✅ | ✅ |
+| [Set Screen Brightness](#set-screen-brightness) | set | ✅ | ✅ | ✅ |
+| | get | ✅ | ❌ | ❌ |
+| [Set Input/Output Source](#set-inputoutput-source) | set | ✅ | ✅ | ✅ |
+| | get | ✅ | ❌ | ❌ |
+| [Kill Application](#kill-application) | set | ✅ | ✅ | ✅ |
+| [Set System Time](#set-system-time) | set | ✅ | ✅ | ✅ |
+| [Set Navigation Bar Visibility](#set-navigation-bar-visibility) | set | ✅ | ✅ | ✅ |
+| [Get Screen Screenshot](#get-screen-screenshot) | set | ✅ | ✅ | ✅ |
+| [Set Volume](#set-volume) | set | ✅ | ✅ | ✅ |
+| | get | ✅ | ❌ | ❌ |
+| [Install Application](#install-application) | set | ✅ | ✅ | ✅ |
+| [Set Screen Orientation](#set-screen-orientation) | set + get | ✅ | ❌ | ❌ |
+| [Set IR Remote State](#set-ir-remote-state) | set + get | ✅ | ❌ | ❌ |
+| [Set IR Home Key State](#set-ir-home-key-state) | set + get | ✅ | ❌ | ❌ |
+| [Set Touch Screen State](#set-touch-screen-state) | set + get | ✅ | ❌ | ❌ |
+| [Set Audio Output Channel](#set-audio-output-channel) | set + get | ✅ | ❌ | ❌ |
+| [Scaler Logo Style (Set/Get)](#scaler-logo-style-setget) | set + get | ✅ | ❌ | ❌ |
+| [Ambient Light Auto Switch (Set/Get)](#ambient-light-auto-switch-setget) | set + get | ✅ | ❌ | ❌ |
+
+> ✅ **Works.**
+> ❌ **Not Supported** — the broadcast is accepted but nothing changes, and no `notify` reply arrives.
+> A ❌ **get** next to a ✅ **set** means the write lands but the state cannot be read back — drive those boards open-loop, and keep your own copy of what you last wrote.
+
 ---
 
 ## Toggle USB Power
+
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
 
 * **Broadcast message**: `com.assist.set.usbpower`
 
@@ -59,6 +99,8 @@ context.sendBroadcast(intent);
 ---
 
 ## Get USB Power State
+
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
 
 * **Request broadcast**: `com.assist.get.usbpower`
 * **Response broadcast**: `com.assist.notify.usbpower`
@@ -110,6 +152,8 @@ protected void onDestroy() {
 ---
 
 ## Control Power State (Shutdown/Sleep/Wake)
+
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
 
 * **Broadcast message**: `com.assist.sleep.timeonoff`
 
@@ -184,6 +228,8 @@ protected void onDestroy() {
 
 ## Reboot Screen
 
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
+
 * **Broadcast message**: `com.assist.reboot.action`
 
 ---
@@ -204,6 +250,8 @@ context.sendBroadcast(intent);
 ---
 
 ## Set Screen Brightness
+
+> **Support** — GV3568 ✅ · DS3288 ✅ set / ❌ get · DS3399 ✅ set / ❌ get
 
 * **Broadcast message**: `com.assist.set.light`
 
@@ -257,6 +305,8 @@ protected void onDestroy() {
 ---
 
 ## Set Input/Output Source
+
+> **Support** — GV3568 ✅ · DS3288 ✅ set / ❌ get · DS3399 ✅ set / ❌ get
 
 * **Broadcast message**: `com.assist.set.port`
 
@@ -320,6 +370,8 @@ protected void onDestroy() {
 
 ## Kill Application
 
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
+
 * **Broadcast message**: `com.assist.kill.app.action`
 
 ---
@@ -344,6 +396,8 @@ context.sendBroadcast(intent);
 ---
 
 ## Set System Time
+
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
 
 * **Broadcast message**: `com.assist.settime.action`
 
@@ -370,6 +424,8 @@ context.sendBroadcast(intent);
 ---
 
 ## Set Navigation Bar Visibility
+
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
 
 * **Broadcast message**: `com.assist.switch.navigation.action`
 
@@ -403,6 +459,8 @@ context.sendBroadcast(intent);
 
 ## Get Screen Screenshot
 
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
+
 * **Broadcast message**: `com.assist.screencap.action`
 
 ---
@@ -428,6 +486,8 @@ context.sendBroadcast(intent);
 ---
 
 ## Set Volume
+
+> **Support** — GV3568 ✅ · DS3288 ✅ set / ❌ get · DS3399 ✅ set / ❌ get
 
 * **Broadcast message**: `com.assist.set.volume`
 
@@ -507,6 +567,8 @@ protected void onDestroy() {
 
 ## Install Application
 
+> **Support** — GV3568 ✅ · DS3288 ✅ · DS3399 ✅
+
 * **Broadcast message**: `com.assist.install.app.action`
 
 ---
@@ -533,6 +595,8 @@ context.sendBroadcast(intent);
 ---
 
 ## Set Screen Orientation
+
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
 
 * **Broadcast message**: `com.assist.set.system.orientation`
 
@@ -595,6 +659,8 @@ protected void onDestroy() {
 
 ## Set IR Remote State
 
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
+
 * **Broadcast message**: `com.assist.set.remote`
 
 ---
@@ -647,6 +713,8 @@ protected void onDestroy() {
 ---
 
 ## Set IR Home Key State
+
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
 
 * **Broadcast message**: `com.assist.sethome.action`
 
@@ -701,6 +769,8 @@ protected void onDestroy() {
 
 ## Set Touch Screen State
 
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
+
 * **Broadcast message**: `com.assist.set.touch`
 
 ---
@@ -753,6 +823,8 @@ protected void onDestroy() {
 ---
 
 ## Set Audio Output Channel
+
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
 
 * **Broadcast message**: `com.assist.set.audio.channel`
 
@@ -832,6 +904,8 @@ protected void onDestroy() {
 
 ## Scaler Logo Style (Set/Get)
 
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
+
 ### Set Scaler Logo Style
 
 * **Broadcast message**: `com.assist.set.logostyle`
@@ -840,15 +914,17 @@ protected void onDestroy() {
 
 | **Parameter Name** | **Description**                   |
 | ------------------ |-----------------------------------|
-| `logoStyle`        | `0`: Android, `1`: X, `2`: Videri |
+| `logoStyle`        | `0`: Android default, `1`: Custom logo 1, `2`: Custom logo 2 |
 
 #### **Example Usage**
 
 ```java
 Intent intent = new Intent("com.assist.set.logostyle");
-intent.putExtra("logoStyle", 0); // 0: Android, 1: X, 2: Videri
+intent.putExtra("logoStyle", 0); // 0: Android default, 1: Custom logo 1, 2: Custom logo 2
 context.sendBroadcast(intent);
 ```
+
+> Custom logo artwork is assigned per order — contact Allsee for the index that corresponds to your logo.
 
 ### Get Scaler Logo Style
 
@@ -859,7 +935,7 @@ context.sendBroadcast(intent);
 
 | **Parameter Name** | **Description**                   |
 | ------------------ |-----------------------------------|
-| `logoStyle`        | `0`: Android, `1`: X, `2`: Videri |
+| `logoStyle`        | `0`: Android default, `1`: Custom logo 1, `2`: Custom logo 2 |
 
 #### **Example Usage**
 
@@ -876,8 +952,8 @@ private final BroadcastReceiver logoStyleReceiver = new BroadcastReceiver() {
   public void onReceive(Context context, Intent intent) {
     int style = intent.getIntExtra("logoStyle", -1000);
     if (style != -1000) {
-      String name = (style == 0) ? "Android" : (style == 1) ? "X" : (style == 2) ? "Videri" : ("Unknown(" + style + ")");
-      Log.d("LogoStyle", "Current scaler logo style: " + name + " [" + style + "]"); // -1:Do not support; `0`: Android, `1`: X, `2`: Videri 
+      String name = (style == 0) ? "Android default" : (style == 1) ? "Custom logo 1" : (style == 2) ? "Custom logo 2" : ("Unknown(" + style + ")");
+      Log.d("LogoStyle", "Current scaler logo style: " + name + " [" + style + "]"); // -1:Do not support; `0`: Android default, `1`: Custom logo 1, `2`: Custom logo 2 
     } else {
       Log.e("LogoStyle", "Failed to receive logoStyle.");
     }
@@ -894,6 +970,8 @@ protected void onDestroy() {
 ---
 
 ## Ambient Light Auto Switch (Set/Get)
+
+> **Support** — GV3568 ✅ · DS3288 ❌ · DS3399 ❌
 
 ### Set Ambient Light Auto Switch
 
@@ -965,3 +1043,30 @@ protected void onDestroy() {
 
 ---
 
+## Compatibility Notes
+
+### Supported Android versions
+
+These APIs are available from **Android 7.0 (API 24)** upwards. Build your client app with a `minSdk` of 24 or higher.
+
+### Registering a receiver for `get` replies
+
+A `get` broadcast does not return a value directly. The answer arrives as a **separate** `com.assist.notify.*` broadcast, so your app must register a receiver for it before sending the request, and unregister it when you are done.
+
+Registration differs by Android version. `Context.RECEIVER_NOT_EXPORTED` is only available from **API 33**, and it would drop these replies in any case, because they are sent by another package — use `RECEIVER_EXPORTED` there, and the two-argument call below it:
+
+```java
+IntentFilter filter = new IntentFilter("com.assist.notify.light");
+
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+} else {
+    registerReceiver(receiver, filter);
+}
+```
+
+The `registerReceiver(...)` calls in the examples on this page are written in the API 33 form for brevity. Apply the branch above when your app also targets earlier Android versions.
+
+### Boards without a `get` reply
+
+Where [Board Support](#board-support) marks a `get` as ❌, the matching `set` still takes effect — the state simply cannot be read back. On those boards, keep your own record of the last value written rather than querying the panel.
