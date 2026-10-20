@@ -22,6 +22,7 @@
 * [Set Audio Output Channel](#set-audio-output-channel)
 * [Scaler Logo Style (Set/Get)](#scaler-logo-style-setget)
 * [Ambient Light Auto Switch (Set/Get)](#ambient-light-auto-switch-setget)
+* [Extended Capabilities (SDK)](#extended-capabilities-sdk)
 * [Compatibility Notes](#compatibility-notes)
 
 ---
@@ -29,6 +30,8 @@
 ## Board Support
 
 Availability differs by **board generation**. Check this table before relying on a call, and see [Compatibility Notes](#compatibility-notes) for the minimum Android version and receiver registration.
+
+For control beyond these broadcasts — low-level display, hardware I/O, scheduling — see [Extended Capabilities (SDK)](#extended-capabilities-sdk).
 
 | API | Call | GV3568 | DS3288 | DS3399 |
 | --- | --- | :---: | :---: | :---: |
@@ -1040,6 +1043,27 @@ protected void onDestroy() {
   unregisterReceiver(ambientLightReceiver);
 }
 ```
+
+---
+
+## Extended Capabilities (SDK)
+
+The broadcasts above cover everyday screen control. A Java SDK is available for deeper integration, reaching hardware and display functions that broadcasts do not expose. It is supplied separately under agreement and is not part of this repository.
+
+| Area | Covers |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Device information | Serial number, system and MCU versions, total and free RAM and storage, per-app memory and CPU usage, system properties |
+| Display | Orientation, screen on/off, brightness, backlight inversion and PWM range, resolution and custom timings, LVDS mode and channels, picture size and position |
+| System control | Reboot, screenshot, navigation and status bar, standby and low-power standby, fan control, silent install and uninstall, factory reset, uptime, NTP server, camera and touch orientation |
+| Scheduled power | Daily, weekly and dated power-on / power-off schedules |
+| System time | Set system time, read RTC, automatic time synchronisation |
+| Watchdog | Watchdog owner, timeout and feed |
+| Hardware I/O | GPIO, flash read and write, indicator LEDs, speaker power parameters, serial ports, CAN bus, IR remote state |
+| Identifiers and diagnostics | SIM ICCID, IMEI, eMMC wear level, shell command execution |
+| Scaler control | Direct scaler command set |
+| System events | Extended event set, including boot logo and boot animation replacement, OTA update and silent app installation |
+
+As with the broadcast APIs, availability varies by board generation. To arrange access, or to check whether a specific function is available on your model, contact Allsee.
 
 ---
 
